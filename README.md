@@ -14,12 +14,11 @@ Llene esta tabla con el nombre completo y el código de cada integrante. Es
 parte de la entrega: si falta alguno, la entrega se sanciona con el 20 % de
 la nota.
 
-| Nombre completo | Código |
-|---|---|
-| | |
-| | |
-| | |
-| | |
+| Nombre completo                | Código    |
+|--------------------------------|-----------|
+| Daniela Franco Ibarra          | 202477154 |
+| Dayan Stefany Marulanda Pulido | 202477427 |
+| Juan Alejandro Márquez Varón   | 202559853 |
 
 ## Cómo está organizado el proyecto
 
