@@ -28,7 +28,23 @@ class RobotCuadriculaTest extends AnyFunSuite {
   test("girar: un giro y su contrario se cancelan") {
     assert(girar(girar(Este, Derecha), Izquierda) == Este)
   }
+  // punto 1 pruebas propuestas ------------------------------------------------
+  test("girar: Este a la derecha da Sur") { assert(girar(Este, Derecha) == Sur) }
 
+  test("girar: Sur a la derecha da Oeste") { assert(girar(Sur, Derecha) == Oeste) }
+
+  test("girar: Este a la izquierda da Norte") { assert(girar(Este, Izquierda) == Norte) }
+
+  test("girar: Oeste a la izquierda da Sur") { assert(girar(Oeste, Izquierda) == Sur) }
+
+  test("girar: dos giros a la derecha equivalen a media vuelta") {
+    assert(girar(girar(Norte, Derecha), Derecha) == Sur)
+    assert(girar(girar(Este, Derecha), Derecha) == Oeste) }
+
+  test("girar: cuatro giros a la izquierda vuelven al principio") {
+    val cuatro = List(Izquierda, Izquierda, Izquierda, Izquierda)
+      .foldLeft(Sur: Direccion)((d, s) => girar(d, s))
+    assert(cuatro == Sur) }
   // Punto 2 -------------------------------------------------------------------
 
   test("ejecutar: avanzar tres al norte") {
