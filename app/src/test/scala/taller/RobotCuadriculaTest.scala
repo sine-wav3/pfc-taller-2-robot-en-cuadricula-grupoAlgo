@@ -80,6 +80,27 @@ class RobotCuadriculaTest extends AnyFunSuite {
     assert(ejecutar(Estado(5, 5, Oeste), Avanzar(2)) == Estado(3, 5, Oeste))
   }
 
+  // Punto 2: pruebas propuestas -----------------------------------------------
+  test("ejecutar: avanzar al este desde otra posicion aumenta x") {
+    assert(ejecutar(Estado(1, 1, Este), Avanzar(3)) == Estado(4, 1, Este))
+  }
+
+  test("ejecutar: retroceder mirando al oeste aumenta x") {
+    assert(ejecutar(Estado(0, 0, Oeste), Avanzar(-2)) == Estado(2, 0, Oeste))
+  }
+
+  test("ejecutar: repetir con veces negativo no hace nada") {
+    assert(ejecutar(inicial, Repetir(-3, Avanzar(1))) == inicial)
+  }
+
+  test("ejecutar: repetir tres veces un avance de dos") {
+    assert(ejecutar(inicial, Repetir(3, Avanzar(2))) == Estado(0, 6, Norte))
+  }
+
+  test("ejecutar: repeticiones anidadas multiplican los avances") {
+    assert(ejecutar(inicial, Repetir(2, Repetir(2, Avanzar(1)))) == Estado(0, 4, Norte))
+  }
+
   // Punto 3 -------------------------------------------------------------------
 
   test("cuantasBasicas: una orden básica cuenta uno") {
