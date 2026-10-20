@@ -255,15 +255,9 @@ ejecutar((0,0,N), Repetir(3, Avanzar(2)))
 
 **Resultado:** `Estado(-3, 1, Oeste)`. Mirando al oeste, avanzar resta a $x$.
 
-# Informe de proceso
-
-Este informe explica, paso a paso, cómo se ejecutan las funciones implementadas como solución al punto 3 del taller: `cuantasBasicas` y `profundidad`. Ambas funciones analizan una orden sin ejecutarla sobre un estado del robot.
-
----
-
 ## Punto 3: `cuantasBasicas` y `profundidad`
 
-### 3.1. Idea general
+### Idea general
 
 El tipo `Orden` contiene cuatro alternativas:
 
@@ -330,19 +324,15 @@ En el caso de `Secuencia`, se cuentan las órdenes básicas de cada elemento de 
 La regla matemática es:
 
 $
-B(\operatorname{Avanzar}(n))=1
+B(\operatorname{Avanzar}(n)) = 1
 $
 
 $
-B(\operatorname{Girar}(s))=1
+B(\operatorname{Girar}(s)) = 1
 $
 
 $
-B(\operatorname{Repetir}(k,o))=
-\begin{cases}
-0 & \text{si } k\leq 0,\\
-kB(o) & \text{si } k>0.
-\end{cases}
+B(\operatorname{Repetir}(k,o))= \begin{cases} 0 & \text{si } k\leq 0,\\ kB(o) & \text{si } k>0. \end{cases}
 $
 
 **Caso `Secuencia(ordenes)`**
@@ -355,9 +345,8 @@ $
 La regla matemática es:
 
 $
-B(\operatorname{Secuencia}([o_1,\ldots,o_m]))
-=\sum_{i=1}^{m}B(o_i)
-$
+B(\operatorname{Secuencia}([o_1,\ldots,o_m])) = \sum_{i=1}^{m}B(o_i)
+$ 
 
 Para la lista vacía, la suma se considera igual a cero.
 
