@@ -254,3 +254,464 @@ ejecutar((0,0,N), Repetir(3, Avanzar(2)))
 | `Avanzar(3)` | $(0, 1, O)$ | $(-3, 1, O)$ |
 
 **Resultado:** `Estado(-3, 1, Oeste)`. Mirando al oeste, avanzar resta a $x$.
+
+# Informe de proceso
+
+Este informe explica, paso a paso, cómo se ejecutan las funciones implementadas como solución al punto 3 del taller: `cuantasBasicas` y `profundidad`. Ambas funciones analizan una orden sin ejecutarla sobre un estado del robot.
+
+---
+
+## Punto 3: `cuantasBasicas` y `profundidad`
+
+### 3.1. Idea general
+
+El tipo `Orden` contiene cuatro alternativas:
+
+- `Avanzar(n)`: orden básica que indica avanzar una cantidad de pasos.
+- `Girar(s)`: orden básica que indica girar hacia la derecha o hacia la izquierda.
+- `Repetir(veces, orden)`: orden compuesta que repite otra orden.
+- `Secuencia(ordenes)`: orden compuesta que contiene una lista de órdenes.
+
+Las funciones del punto 3 recorren esta estructura recursiva, pero no ejecutan los movimientos del robot.
+
+**`cuantasBasicas(o)`** cuenta las órdenes básicas `Avanzar` y `Girar` que se ejecutarían, teniendo en cuenta las repeticiones.
+
+**`profundidad(o)`** calcula el nivel de anidamiento de la orden. Una orden básica tiene profundidad 1 y una orden compuesta tiene profundidad 1 más que la mayor profundidad de sus componentes.
+
+---
+
+## 3.2. Función `cuantasBasicas`
+
+### Código Scala
+
+```scala
+def cuantasBasicas(o: Orden): Int = o match {
+  case Avanzar(_) => 1
+  case Girar(_) => 1
+
+  case Repetir(veces, orden) =>
+    if (veces <= 0) 0
+    else veces * cuantasBasicas(orden)
+
+  case Secuencia(ordenes) =>
+    ordenes.map(cuantasBasicas).sum
+}
+```
+
+### Idea general
+
+La función utiliza `match` para identificar la alternativa de `Orden` que recibe.
+
+Las órdenes básicas, `Avanzar` y `Girar`, cuentan como una unidad cada una. En el caso de `Repetir`, se calcula cuántas órdenes básicas contiene la orden repetida y se multiplica por el número de repeticiones. Si el número de repeticiones es cero o negativo, el resultado es cero.
+
+En el caso de `Secuencia`, se cuentan las órdenes básicas de cada elemento de la lista y se suman los resultados. Si la lista está vacía, la suma es cero.
+
+### Ejecución paso a paso
+
+**Caso `Avanzar(n)`**
+
+1. La función recibe una orden `Avanzar`.
+2. No necesita conocer el valor de `n`, porque solo importa contar la orden.
+3. Devuelve `1`.
+
+**Caso `Girar(s)`**
+
+1. La función recibe una orden `Girar`.
+2. No necesita conocer el sentido del giro.
+3. Devuelve `1`.
+
+**Caso `Repetir(veces, orden)`**
+
+1. Se obtiene el número de repeticiones y la orden que se repetirá.
+2. Si `veces <= 0`, devuelve `0`.
+3. Si `veces > 0`, calcula recursivamente las órdenes básicas contenidas en `orden`.
+4. Multiplica el resultado por `veces`.
+
+La regla matemática es:
+
+$
+B(\operatorname{Avanzar}(n))=1
+$
+
+$
+B(\operatorname{Girar}(s))=1
+$
+
+$
+B(\operatorname{Repetir}(k,o))=
+\begin{cases}
+0 & \text{si } k\leq 0,\\
+kB(o) & \text{si } k>0.
+\end{cases}
+$
+
+**Caso `Secuencia(ordenes)`**
+
+1. Se obtiene la lista de órdenes.
+2. `map(cuantasBasicas)` calcula el conteo de cada elemento.
+3. `sum` suma todos los conteos.
+4. Si la lista está vacía, devuelve `0`.
+
+La regla matemática es:
+
+$
+B(\operatorname{Secuencia}([o_1,\ldots,o_m]))
+=\sum_{i=1}^{m}B(o_i)
+$
+
+Para la lista vacía, la suma se considera igual a cero.
+
+### Diagrama de flujo
+
+```mermaid
+flowchart TD
+    A["cuantasBasicas(o)"] --> B{"match sobre o"}
+    B -->|"Avanzar(n)"| C["Devuelve 1"]
+    B -->|"Girar(s)"| D["Devuelve 1"]
+    B -->|"Repetir(k, orden)"| E{"k <= 0?"}
+    E -->|"Sí"| F["Devuelve 0"]
+    E -->|"No"| G["k * cuantasBasicas(orden)"]
+    B -->|"Secuencia(ordenes)"| H["map(cuantasBasicas)"]
+    H --> I["sum"]
+    I --> J["Devuelve la suma"]
+```
+
+### Trazas de ejecución
+
+#### Traza 1: una orden básica
+
+Llamada:
+
+```scala
+cuantasBasicas(Avanzar(3))
+```
+
+| Paso | Acción | Resultado |
+|---|---|---:|
+| 1 | Se identifica `Avanzar(3)` | — |
+| 2 | Se aplica el caso de una orden básica | 1 |
+
+**Resultado:** `1`.
+
+Aunque la orden indique avanzar tres pasos, cuenta como una sola orden básica.
+
+#### Traza 2: una secuencia de órdenes básicas
+
+Llamada:
+
+```scala
+cuantasBasicas(
+  Secuencia(List(Avanzar(2), Girar(Derecha), Avanzar(4)))
+)
+```
+
+| Paso | Orden | Conteo |
+|---|---|---:|
+| 1 | `Avanzar(2)` | 1 |
+| 2 | `Girar(Derecha)` | 1 |
+| 3 | `Avanzar(4)` | 1 |
+| 4 | Suma de los conteos | 3 |
+
+**Resultado:** `3`.
+
+#### Traza 3: repetir una orden compuesta
+
+Se utiliza el cuadrado definido en el enunciado:
+
+```scala
+val cuadrado =
+  Repetir(4, Secuencia(List(Avanzar(1), Girar(Derecha))))
+```
+
+Llamada:
+
+```scala
+cuantasBasicas(cuadrado)
+```
+
+| Paso | Acción | Resultado |
+|---|---|---:|
+| 1 | Se identifica `Repetir(4, orden)` | — |
+| 2 | Se cuenta `Avanzar(1)` | 1 |
+| 3 | Se cuenta `Girar(Derecha)` | 1 |
+| 4 | Se suman las órdenes de la secuencia | 2 |
+| 5 | Se multiplica por las 4 repeticiones | \(4\times 2=8\) |
+
+**Resultado:** `8`.
+
+#### Traza 4: repetir cero veces
+
+Llamada:
+
+```scala
+cuantasBasicas(Repetir(0, Avanzar(5)))
+```
+
+| Paso | Acción | Resultado |
+|---|---|---:|
+| 1 | Se identifica `Repetir(0, orden)` | — |
+| 2 | Se comprueba `veces <= 0` | Verdadero |
+| 3 | Se devuelve cero sin contar la orden interna | 0 |
+
+**Resultado:** `0`.
+
+#### Traza 5: secuencia vacía
+
+Llamada:
+
+```scala
+cuantasBasicas(Secuencia(Nil))
+```
+
+| Paso | Acción | Resultado |
+|---|---|---:|
+| 1 | Se identifica `Secuencia(Nil)` | — |
+| 2 | Se aplica `map` a la lista vacía | `Nil` |
+| 3 | Se suman los elementos de la lista vacía | 0 |
+
+**Resultado:** `0`.
+
+---
+
+## 3.3. Función `profundidad`
+
+### Código Scala
+
+```scala
+def profundidad(o: Orden): Int = o match {
+  case Avanzar(_) => 1
+  case Girar(_) => 1
+
+  case Repetir(_, orden) =>
+    1 + profundidad(orden)
+
+  case Secuencia(ordenes) =>
+    1 + (ordenes.map(profundidad).maxOption.getOrElse(0))
+}
+```
+
+### Idea general
+
+La función calcula cuántos niveles de anidamiento tiene una orden.
+
+Las órdenes básicas tienen profundidad 1, porque no contienen otras órdenes.
+
+En `Repetir`, la profundidad corresponde a un nivel adicional más la profundidad de la orden repetida.
+
+En `Secuencia`, se calcula la profundidad de cada elemento, se selecciona la mayor y se suma uno para contar el nivel de la propia secuencia. Si la lista está vacía, `maxOption` no encuentra un máximo y `getOrElse(0)` proporciona cero. Por eso, una secuencia vacía tiene profundidad 1.
+
+### Ejecución paso a paso
+
+**Caso `Avanzar(n)`**
+
+1. Se identifica la orden básica.
+2. Como no contiene otras órdenes, devuelve `1`.
+
+**Caso `Girar(s)`**
+
+1. Se identifica la orden básica.
+2. Como no contiene otras órdenes, devuelve `1`.
+
+**Caso `Repetir(veces, orden)`**
+
+1. Se obtiene la orden interna.
+2. Se calcula recursivamente su profundidad.
+3. Se suma `1` para incluir el nivel de `Repetir`.
+
+La regla matemática es:
+
+$
+P(\operatorname{Repetir}(k,o))=1+P(o)
+$
+
+El número de repeticiones no afecta a la profundidad: repetir una orden una vez o diez veces no agrega niveles de anidamiento adicionales.
+
+**Caso `Secuencia(ordenes)`**
+
+1. Se calcula la profundidad de cada orden de la lista.
+2. Se obtiene la profundidad máxima.
+3. Se suma `1` para incluir el nivel de la secuencia.
+4. Si no hay elementos, se utiliza `0` como máximo predeterminado.
+
+La regla matemática es:
+
+$
+P(\operatorname{Secuencia}(os))=
+1+\max\left(\{P(o):o\in os\}\cup\{0\}\right)
+$
+
+Por lo tanto, la secuencia vacía tiene profundidad \(1+0=1\).
+
+### Diagrama de flujo
+
+```mermaid
+flowchart TD
+    A["profundidad(o)"] --> B{"match sobre o"}
+    B -->|"Avanzar(n)"| C["Devuelve 1"]
+    B -->|"Girar(s)"| D["Devuelve 1"]
+    B -->|"Repetir(k, orden)"| E["1 + profundidad(orden)"]
+    B -->|"Secuencia(ordenes)"| F["Calcular profundidad de cada orden"]
+    F --> G["Obtener el máximo"]
+    G --> H{"¿La lista está vacía?"}
+    H -->|"Sí"| I["Máximo predeterminado: 0"]
+    H -->|"No"| J["Usar la profundidad máxima"]
+    I --> K["Sumar 1"]
+    J --> K
+    K --> L["Devolver la profundidad"]
+```
+
+### Trazas de ejecución
+
+#### Traza 1: una orden básica
+
+Llamada:
+
+```scala
+profundidad(Avanzar(3))
+```
+
+| Paso | Acción | Resultado |
+|---|---|---:|
+| 1 | Se identifica `Avanzar(3)` | — |
+| 2 | Se aplica el caso básico | 1 |
+
+**Resultado:** `1`.
+
+#### Traza 2: una secuencia de órdenes básicas
+
+Llamada:
+
+```scala
+profundidad(Secuencia(List(Avanzar(1), Girar(Derecha))))
+```
+
+| Paso | Acción | Resultado |
+|---|---|---:|
+| 1 | Profundidad de `Avanzar(1)` | 1 |
+| 2 | Profundidad de `Girar(Derecha)` | 1 |
+| 3 | Se obtiene el máximo: `max(1, 1)` | 1 |
+| 4 | Se suma el nivel de `Secuencia` | \(1+1=2\) |
+
+**Resultado:** `2`.
+
+#### Traza 3: el cuadrado
+
+Llamada:
+
+```scala
+profundidad(cuadrado)
+```
+
+Donde:
+
+```scala
+val cuadrado =
+  Repetir(4, Secuencia(List(Avanzar(1), Girar(Derecha))))
+```
+
+| Paso | Acción | Resultado |
+|---|---|---:|
+| 1 | Profundidad de `Avanzar(1)` | 1 |
+| 2 | Profundidad de `Girar(Derecha)` | 1 |
+| 3 | Profundidad de la secuencia: \(1+\max(1,1)\) | 2 |
+| 4 | Profundidad de `Repetir`: \(1+2\) | 3 |
+
+**Resultado:** `3`.
+
+La estructura tiene tres niveles: `Repetir`, `Secuencia` y las órdenes básicas.
+
+#### Traza 4: secuencia vacía
+
+Llamada:
+
+```scala
+profundidad(Secuencia(Nil))
+```
+
+| Paso | Acción | Resultado |
+|---|---|---:|
+| 1 | Se identifica `Secuencia(Nil)` | — |
+| 2 | No hay profundidades que calcular | — |
+| 3 | `maxOption` devuelve `None` | — |
+| 4 | `getOrElse(0)` establece el máximo en cero | 0 |
+| 5 | Se suma uno por el nivel de `Secuencia` | 1 |
+
+**Resultado:** `1`.
+
+#### Traza 5: una secuencia con una rama más profunda
+
+Llamada:
+
+```scala
+profundidad(Secuencia(List(Avanzar(1), cuadrado)))
+```
+
+| Paso | Acción | Resultado |
+|---|---|---:|
+| 1 | Profundidad de `Avanzar(1)` | 1 |
+| 2 | Profundidad de `cuadrado` | 3 |
+| 3 | Se obtiene el máximo: `max(1, 3)` | 3 |
+| 4 | Se suma el nivel de la secuencia exterior | \(1+3=4\) |
+
+**Resultado:** `4`.
+
+La profundidad de la rama más profunda determina el resultado. Las ramas más superficiales no reducen ese valor.
+
+---
+
+## 3.4. Comparación entre las dos funciones
+
+Aunque ambas recorren recursivamente la estructura de `Orden`, cada función mide algo diferente.
+
+| Característica | `cuantasBasicas` | `profundidad` |
+|---|---|---|
+| Qué calcula | Número de órdenes básicas | Niveles de anidamiento |
+| `Avanzar` | Devuelve 1 | Devuelve 1 |
+| `Girar` | Devuelve 1 | Devuelve 1 |
+| `Repetir` | Multiplica por las repeticiones | Suma un nivel a la profundidad interna |
+| `Secuencia` | Suma los conteos | Suma 1 a la profundidad máxima |
+| Secuencia vacía | Devuelve 0 | Devuelve 1 |
+| Repetición cero | Devuelve 0 | Depende de la estructura de la orden contenida |
+
+La última fila es importante: `profundidad` mide la estructura de la orden escrita, no cuántas veces se ejecutaría. Por eso, `Repetir(0, Avanzar(5))` tiene profundidad 2, aunque `cuantasBasicas` devuelva 0.
+
+---
+
+## 3.5. Verificación conjunta con los ejemplos
+
+Se resumen los resultados esperados para las dos funciones:
+
+| Orden | `cuantasBasicas` | `profundidad` |
+|---|---:|---:|
+| `Avanzar(3)` | 1 | 1 |
+| `Girar(Derecha)` | 1 | 1 |
+| `Secuencia(List(Avanzar(1), Girar(Derecha)))` | 2 | 2 |
+| `Repetir(4, Secuencia(List(Avanzar(1), Girar(Derecha))))` | 8 | 3 |
+| `Repetir(0, Avanzar(5))` | 0 | 2 |
+| `Secuencia(Nil)` | 0 | 1 |
+| `Secuencia(List(Avanzar(1), cuadrado))` | 9 | 4 |
+
+En el último ejemplo, `cuantasBasicas` devuelve \(1+8=9\), porque cuenta el `Avanzar(1)` exterior y las ocho órdenes básicas del cuadrado.
+
+---
+
+## 3.6. Cumplimiento de las restricciones del taller
+
+| Restricción | Cumplimiento |
+|---|---|
+| Uso de `match` | Las funciones distinguen las cuatro alternativas de `Orden` mediante patrones. |
+| Sin variables mutables | No se modifica ningún estado ni se utiliza `var`. |
+| Sin ciclos `for` o `while` | Se utilizan recursión y operaciones funcionales sobre listas. |
+| Sin `return` | Cada rama devuelve directamente el resultado de su expresión. |
+| Sin ejecutar las órdenes | Las funciones analizan la estructura de `Orden`; no llaman a `ejecutar`. |
+| Modelo de datos sin modificar | Se utilizan los constructores `Avanzar`, `Girar`, `Repetir` y `Secuencia` existentes. |
+
+---
+
+## Conclusión
+
+Las funciones `cuantasBasicas` y `profundidad` recorren la estructura recursiva de una orden utilizando `match`.
+
+`cuantasBasicas` cuenta las órdenes básicas que se ejecutarían, teniendo en cuenta las repeticiones y sumando los elementos de las secuencias. `profundidad` calcula los niveles de anidamiento, sumando un nivel para cada orden compuesta y tomando la rama más profunda en las secuencias.
+
+Ambas funciones trabajan sin modificar el estado del robot y sin ejecutar movimientos. Así, permiten analizar una orden antes de pasarla a la función `ejecutar`.
