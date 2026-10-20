@@ -139,6 +139,30 @@ class RobotCuadriculaTest extends AnyFunSuite {
     assert(profundidad(Secuencia(List(Avanzar(1), cuadrado))) == 4)
   }
 
+  // Punto 3: pruebas propuesta
+
+
+  test("cuantasBasicas: una orden Girar cuenta uno") {
+    assert(cuantasBasicas(Girar(Derecha)) == 1)
+  }
+
+  test("cuantasBasicas: repetir tres veces una básica") {
+    assert(cuantasBasicas(Repetir(3, Avanzar(2))) == 3)
+  }
+
+  test("cuantasBasicas: suma las órdenes de una secuencia") {
+    assert(cuantasBasicas(Secuencia(List(Avanzar(2), Girar(Derecha), Avanzar(5)))) == 3)
+  }
+
+  test("profundidad: repetir una orden básica tiene profundidad 2") {
+    assert(profundidad(Repetir(3, Girar(Derecha))) == 2)
+  }
+
+  test("profundidad: repetir una secuencia aumenta un nivel") {
+    assert(profundidad(Repetir(2, Secuencia(List(Avanzar(1), Girar(Derecha))))) == 3)
+  }
+
+
   // Punto 4 -------------------------------------------------------------------
 
   test("componer: deja las dos órdenes en secuencia") {
