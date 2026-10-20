@@ -256,31 +256,31 @@ En particular, desde `inicial` el resultado es $(0,0,N)$, como pide el enunciado
 
 ### 0.1. Órdenes
 
-Sea `mathcal{O}` el conjunto de todas las órdenes del robot. Según el modelo de datos, las órdenes se construyen mediante cuatro alternativas:
+Sea $\mathcal{O}$ el conjunto de todas las órdenes del robot. Según el modelo de datos, las órdenes se construyen mediante cuatro alternativas:
 
-- `operatorname{Avanzar}(n)`, donde `\(n\in\mathbb{Z}\)`.
-- \(\operatorname{Girar}(s)\), donde \(s\) representa el sentido del giro.
-- \(\operatorname{Secuencia}(L)\), donde \(L\) es una lista de órdenes.
-- \(\operatorname{Repetir}(k,o)\), donde \(k\) es el número de repeticiones y \(o\) es una orden.
+- $\operatorname{Avanzar}(n)$, donde $n\in\mathbb{Z}$.
+- $\operatorname{Girar}(s)$, donde $s$ representa el sentido del giro.
+- $\operatorname{Secuencia}(L)$, donde $L$ es una lista de órdenes.
+- $\operatorname{Repetir}(k,o)$, donde $k$ es el número de repeticiones y \(o\) es una orden.
 
-Se consideran básicas las órdenes \(\operatorname{Avanzar}(n)\) y \(\operatorname{Girar}(s)\). Las otras dos son compuestas porque contienen listas u órdenes.
+Se consideran básicas las órdenes $\operatorname{Avanzar}(n)$ y $\operatorname{Girar}(s)$. Las otras dos son compuestas porque contienen listas u órdenes.
 
 ### 0.2. Funciones que se deben implementar
 
 El punto 3 solicita dos funciones que analizan una orden sin ejecutarla:
 
-\[
+$
 B:\mathcal{O}\rightarrow\mathbb{N}
-\]
+$
 
-\[
+$
 P:\mathcal{O}\rightarrow\mathbb{N}
-\]
+$
 
 Donde:
 
-- \(B(o)\) representa la cantidad de órdenes básicas que se ejecutarían al ejecutar \(o\), contando las repeticiones.
-- \(P(o)\) representa la profundidad de anidamiento de \(o\).
+- $B(o)$ representa la cantidad de órdenes básicas que se ejecutarían al ejecutar $o$, contando las repeticiones.
+- $P(o)$ representa la profundidad de anidamiento de $o$.
 
 En el código, estas funciones se denominan `cuantasBasicas` y `profundidad`, respectivamente.
 
@@ -294,38 +294,38 @@ La especificación matemática se define recursivamente:
 
 **(B1) Avanzar.** Toda orden `Avanzar` cuenta como una orden básica, independientemente de la distancia:
 
-\[
+$
 B(\operatorname{Avanzar}(n))=1
-\]
+$
 
 **(B2) Girar.** Toda orden `Girar` cuenta como una orden básica:
 
-\[
+$
 B(\operatorname{Girar}(s))=1
-\]
+$
 
 **(B3) Secuencia.** Se suman las cantidades correspondientes a todas las órdenes de la lista:
 
-\[
+$
 B(\operatorname{Secuencia}(L))
 =\sum_{o\in L}B(o)
-\]
+$
 
 Si la lista está vacía, la suma es cero:
 
-\[
+$
 B(\operatorname{Secuencia}([]))=0
-\]
+$
 
 **(B4) Repetir.** Si el número de repeticiones es positivo, se multiplica la cantidad de órdenes básicas de la orden interna por el número de repeticiones. Si es cero o negativo, no se ejecuta ninguna orden:
 
-\[
+$
 B(\operatorname{Repetir}(k,o))=
 \begin{cases}
 0 & \text{si }k\leq 0\\
 k\cdot B(o) & \text{si }k>0
 \end{cases}
-\]
+$
 
 Estas cuatro reglas definen el comportamiento esperado de `cuantasBasicas`.
 
@@ -367,36 +367,34 @@ Cada caso coincide con la regla matemática correspondiente.
 
 **Propiedad B1: las órdenes básicas siempre cuentan uno.**
 
-Para cualquier entero \(n\) y cualquier sentido \(s\):
+Para cualquier entero $n$ y cualquier sentido $s$:
 
-\[
+$
 B(\operatorname{Avanzar}(n))=
 B(\operatorname{Girar}(s))=1
-\]
+$
 
 La distancia de avance no modifica el conteo, porque se cuenta la orden y no el número de casillas recorridas.
 
 **Propiedad B2: las secuencias son aditivas.**
 
-Para dos listas de órdenes \(L_1\) y \(L_2\), su concatenación satisface:
+Para dos listas de órdenes $L_1$ y $L_2$, su concatenación satisface:
 
-\[
-B(\operatorname{Secuencia}(L_1\mathbin{+\!\!+}L_2))
-=
-B(\operatorname{Secuencia}(L_1))
-+
-B(\operatorname{Secuencia}(L_2))
-\]
+
+$B(\operatorname{Secuencia}(L_1\mathbin{+\!\!+}L_2))
+=B(\operatorname{Secuencia}(L_1))+
+B(\operatorname{Secuencia}(L_2))$
+
 
 Esto se deriva de que la suma de los elementos de una concatenación es la suma de las dos listas.
 
 **Propiedad B3: las repeticiones multiplican el conteo.**
 
-Para \(k>0\):
+Para $k>0$:
 
-\[
+$
 B(\operatorname{Repetir}(k,o))=kB(o)
-\]
+$
 
 En particular, repetir dos veces una orden con tres órdenes básicas produce un total de seis.
 
@@ -406,42 +404,42 @@ En particular, repetir dos veces una orden con tres órdenes básicas produce un
 
 La función debe calcular los niveles de anidamiento de una orden, sin ejecutarla.
 
-Una orden básica tiene profundidad \(1\). Una orden compuesta tiene una profundidad igual a uno más que la profundidad máxima de las órdenes que contiene.
+Una orden básica tiene profundidad $1$. Una orden compuesta tiene una profundidad igual a uno más que la profundidad máxima de las órdenes que contiene.
 
 La especificación es la siguiente.
 
 **(P1) Avanzar.**
 
-\[
+$
 P(\operatorname{Avanzar}(n))=1
-\]
+$
 
 **(P2) Girar.**
 
-\[
+$
 P(\operatorname{Girar}(s))=1
-\]
+$
 
 **(P3) Secuencia.** Si la secuencia contiene órdenes, su profundidad es uno más que la profundidad máxima de sus elementos:
 
-\[
+$
 P(\operatorname{Secuencia}(L))
 =1+\max_{o\in L}P(o)
-\]
+$
 
 Para una secuencia vacía, el enunciado establece explícitamente:
 
-\[
+$
 P(\operatorname{Secuencia}([]))=1
-\]
+$
 
 Esta excepción evita calcular el máximo de una lista vacía, operación que no está definida.
 
 **(P4) Repetir.** La repetición agrega un nivel de anidamiento a la orden que contiene:
 
-\[
+$
 P(\operatorname{Repetir}(k,o))=1+P(o)
-\]
+$
 
 Esta regla se aplica independientemente de la cantidad de repeticiones. La profundidad mide la estructura de la orden, no el número de veces que se ejecuta.
 
@@ -481,42 +479,42 @@ Cada alternativa coincide con su regla matemática.
 
 **Propiedad P1: las órdenes básicas tienen profundidad uno.**
 
-\[
+$
 P(\operatorname{Avanzar}(n))
 =P(\operatorname{Girar}(s))=1
-\]
+$
 
 **Propiedad P2: cada nivel compuesto agrega uno.**
 
-Para cualquier orden \(o\):
+Para cualquier orden $o$:
 
-\[
+$
 P(\operatorname{Repetir}(k,o))=1+P(o)
-\]
+$
 
 Por ejemplo:
 
-\[
+$
 P(\operatorname{Repetir}(3,\operatorname{Avanzar}(1)))=2
-\]
+$
 
 Aunque la orden se repita tres veces, el anidamiento solamente agrega un nivel.
 
 **Propiedad P3: la rama más profunda determina la profundidad de una secuencia.**
 
-Si una secuencia contiene una orden de profundidad \(2\) y otra de profundidad \(4\), su profundidad es:
+Si una secuencia contiene una orden de profundidad $2$ y otra de profundidad $4$, su profundidad es:
 
-\[
+$
 P(\operatorname{Secuencia}(L))=1+4=5
-\]
+$
 
 Las órdenes menos profundas no afectan el máximo.
 
 **Propiedad P4: una secuencia vacía tiene profundidad uno.**
 
-\[
+$
 P(\operatorname{Secuencia}([]))=1
-\]
+$
 
 Este resultado es una condición expresa del enunciado, aunque no existan órdenes dentro de la secuencia.
 
@@ -530,7 +528,7 @@ Se utiliza inducción estructural sobre las órdenes.
 
 - **Casos básicos:** `Avanzar(n)` y `Girar(s)` devuelven directamente `1`, sin llamadas recursivas.
 - **Caso `Secuencia(L)`:** la función se aplica a las órdenes que contiene la lista. Cada una es una subestructura de la orden original. Como la lista es finita y cada llamada termina, `map` y `sum` finalizan.
-- **Caso `Repetir(k, o)`:** si \(k\leq 0\), se devuelve directamente `0`. Si \(k>0\), se realiza una única llamada recursiva sobre \(o\), que es una subestructura de la orden original. No se efectúa una llamada recursiva por cada repetición.
+- **Caso `Repetir(k, o)`:** si $k\leq 0$, se devuelve directamente `0`. Si $k>0$, se realiza una única llamada recursiva sobre $o$, que es una subestructura de la orden original. No se efectúa una llamada recursiva por cada repetición.
 
 Por inducción estructural, `cuantasBasicas` termina para toda orden finita.
 
@@ -550,38 +548,38 @@ Se demuestra que las dos funciones cumplen sus respectivas especificaciones medi
 
 ### 4.1. Corrección de `cuantasBasicas`
 
-Se quiere demostrar que el valor devuelto por `cuantasBasicas(o)` es igual a \(B(o)\).
+Se quiere demostrar que el valor devuelto por `cuantasBasicas(o)` es igual a $B(o$).
 
 **Caso `Avanzar(n)`.** El código devuelve `1`, que coincide con (B1).
 
-\[
+$
 \operatorname{cuantasBasicas}(\operatorname{Avanzar}(n))=1=B(\operatorname{Avanzar}(n))
-\]
+$
 
 **Caso `Girar(s)`.** El código devuelve `1`, que coincide con (B2).
 
-\[
+$
 \operatorname{cuantasBasicas}(\operatorname{Girar}(s))=1=B(\operatorname{Girar}(s))
-\]
+$
 
-**Caso `Secuencia(L)`.** Por hipótesis de inducción, para cada orden \(o_i\) de la lista, la llamada recursiva devuelve \(B(o_i)\). Por tanto, la suma calculada por `map(...).sum` es:
+**Caso `Secuencia(L)`.** Por hipótesis de inducción, para cada orden $o_i$ de la lista, la llamada recursiva devuelve $B(o_i)$. Por tanto, la suma calculada por `map(...).sum` es:
 
-\[
+$
 \sum_{o_i\in L}B(o_i)
-\]
+$
 
-Este valor coincide con (B3). Si \(L=[]\), la suma es cero, como establece la especificación.
+Este valor coincide con (B3). Si $L=[]$, la suma es cero, como establece la especificación.
 
 **Caso `Repetir(k, o)`.**
 
-Si \(k\leq0\), el código devuelve cero, coincidiendo con (B4).
+Si $k\leq0$, el código devuelve cero, coincidiendo con (B4).
 
-Si \(k>0\), por hipótesis de inducción, la llamada `cuantasBasicas(o)` devuelve \(B(o)\). El código multiplica este valor por \(k\):
+Si $k>0$, por hipótesis de inducción, la llamada `cuantasBasicas(o)` devuelve $B(o)$. El código multiplica este valor por $k$:
 
-\[
+$
 k\cdot\operatorname{cuantasBasicas}(o)
 =k\cdot B(o)
-\]
+$
 
 Este es exactamente el resultado definido en (B4).
 
@@ -589,7 +587,7 @@ Se han demostrado los cuatro casos. Por inducción estructural, `cuantasBasicas`
 
 ### 4.2. Corrección de `profundidad`
 
-Se quiere demostrar que el valor devuelto por `profundidad(o)` es igual a \(P(o)\).
+Se quiere demostrar que el valor devuelto por `profundidad(o)` es igual a $P(o)$.
 
 **Caso `Avanzar(n)`.** El código devuelve `1`, coincidiendo con (P1).
 
@@ -597,25 +595,25 @@ Se quiere demostrar que el valor devuelto por `profundidad(o)` es igual a \(P(o)
 
 **Caso `Secuencia(L)`.**
 
-Si \(L=[]\), el código devuelve `1`, como establece expresamente (P3).
+Si $L=[]$, el código devuelve `1`, como establece expresamente (P3).
 
-Si \(L\neq[]\), por hipótesis de inducción, cada llamada recursiva devuelve la profundidad correcta de su orden. En consecuencia:
+Si $L\neq[]$, por hipótesis de inducción, cada llamada recursiva devuelve la profundidad correcta de su orden. En consecuencia:
 
-\[
+$
 1+\max_{o_i\in L}\operatorname{profundidad}(o_i)
 =
 1+\max_{o_i\in L}P(o_i)
-\]
+$
 
 El resultado coincide con (P3).
 
-**Caso `Repetir(k, o)`.** Por hipótesis de inducción, `profundidad(o)` devuelve \(P(o)\). El código suma uno:
+**Caso `Repetir(k, o)`.** Por hipótesis de inducción, `profundidad(o)` devuelve $P(o)$. El código suma uno:
 
-\[
+$
 1+\operatorname{profundidad}(o)=1+P(o)
-\]
+$
 
-El resultado coincide con (P4), independientemente del valor de \(k\).
+El resultado coincide con (P4), independientemente del valor de $k$.
 
 Como se han cubierto todos los constructores, por inducción estructural `profundidad` es correcta para toda orden.
 
@@ -639,43 +637,43 @@ Se verifica el comportamiento de las funciones con las entradas indicadas.
 
 El enunciado define:
 
-\[
+$
 c=\operatorname{Secuencia}(
 [\operatorname{Avanzar}(1),\operatorname{Girar}(\operatorname{Derecha})])
-\]
+$
 
-\[
+$
 \operatorname{cuadrado}=\operatorname{Repetir}(4,c)
-\]
+$
 
 Para contar las órdenes básicas, primero se calcula:
 
-\[
+$
 B(c)=B(\operatorname{Avanzar}(1))
 +B(\operatorname{Girar}(\operatorname{Derecha}))
-\]
+$
 
-\[
+$
 B(c)=1+1=2
-\]
+$
 
 Como el cuadrado repite esta secuencia cuatro veces:
 
-\[
+$
 B(\operatorname{cuadrado})=4\cdot2=8
-\]
+$
 
 Para calcular la profundidad:
 
-\[
+$
 P(c)=1+\max(1,1)=2
-\]
+$
 
 La repetición agrega otro nivel:
 
-\[
+$
 P(\operatorname{cuadrado})=1+P(c)=3
-\]
+$
 
 Por tanto, los resultados son ocho órdenes básicas y profundidad tres, como exige el enunciado.
 
