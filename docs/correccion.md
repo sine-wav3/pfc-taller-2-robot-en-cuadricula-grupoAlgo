@@ -698,3 +698,157 @@ La primera cuenta las órdenes básicas que se ejecutarían, teniendo en cuenta 
 La terminación se garantiza porque las llamadas recursivas se realizan sobre subestructuras finitas de la orden original. La corrección se demuestra por inducción estructural, comprobando cada constructor de `Orden` frente a su definición matemática.
 
 Finalmente, ambas funciones respetan las restricciones del taller: no utilizan variables mutables, ciclos ni `return`, no modifican el modelo de datos y no ejecutan las órdenes que analizan.
+
+
+Se usa la notación de la sección 0: $f_o(e)=\mathrm{ej}(o,e)$, $\mathrm{Id}$ es la identidad y $f^{k}$ es la potencia de $f$.
+
+## 1. Punto 4: rutinas con funciones de alto orden
+
+### 1.1. Especificación
+
+**(C1) `componer`.** $\mathrm{ej}(\texttt{componer}(o_1,o_2),e)=f_{o_2}(f_{o_1}(e))$.
+
+**(C2) `rutina`.** Con $a=\texttt{Avanzar}(p)$ y $g=\texttt{Girar}(s)$:
+
+$$\mathrm{ej}(\texttt{rutina}(p)(s)(k),e)=\begin{cases} e & \text{si } k\le 0 \\ (f_g\circ f_a)^{k}(e) & \text{si } k>0 \end{cases}$$
+
+**(C3) `aplicarA`.** Si $es=[e_1,\dots,e_m]$, entonces $\texttt{aplicarA}(es,o)=[f_o(e_1),\dots,f_o(e_m)]$.
+
+**(C4) `transformar`.** Reemplaza cada orden básica $b$ por $f(b)$ y conserva la forma de las compuestas:
+
+$$T(b,f)=f(b),\quad T(\texttt{Repetir}(k,o),f)=\texttt{Repetir}(k,T(o,f)),\quad T(\texttt{Secuencia}([o_i]),f)=\texttt{Secuencia}([T(o_i,f)])$$
+
+### 1.2. El código cumple la especificación
+
+| Función | Código | Especificación |
+|---|---|---|
+| `componer` | `Secuencia(List(o1, o2))` | (C1), por el Teorema 1 de la sección 2.4 |
+| `rutina` | `Repetir(veces, Secuencia(List(Avanzar(pasos), Girar(giro))))` | (C2), por el Teorema 3 de la sección 2.4 |
+| `aplicarA` | `estados.map(e => ejecutar(e, o))` | (C3) |
+| `transformar` | un caso por cada alternativa de `Orden` | (C4) |
+
+**Tipos.** `rutina` es currificada, de tipo `Int => Sentido => Int => Orden`. `transformar` recibe `f: Orden => Orden`. Ambos tipos están declarados.
+
+### 1.3. La rutina compuesta equivale a ejecutar sus partes
+
+**Teorema 4 (`componer`).** Para todo $e$:
+
+$$\mathrm{ej}(\texttt{componer}(o_1,o_2),e)=\mathrm{ej}(o_2,\mathrm{ej}(o_1,e))$$
+
+*Demostración.* `componer` construye $\texttt{Secuencia}(o_1,o_2)$, y el Teorema 1 da exactamente esa igualdad. $\blacksquare$
+
+**Teorema 5 (`rutina`).** Para todo $k\ge 0$ y todo $e$:
+
+$$\mathrm{ej}(\texttt{rutina}(p)(s)(k),e)=\mathrm{ej}(\texttt{Secuencia}(\underbrace{a,g,\dots,a,g}_{k\text{ veces el par}}),e)$$
+
+*Demostración.* `rutina` construye $\texttt{Repetir}(k,c)$ con $c=\texttt{Secuencia}(a,g)$. Por el Teorema 3, esto es $\mathrm{ej}(\texttt{Secuencia}(c,\dots,c),e)=f_c^{k}(e)$. Por el Teorema 1, $f_c=f_g\circ f_a$. Entonces $f_c^{k}(e)$ aplica $k$ veces "avanzar $p$ y girar $s$", que es la ejecución en orden de las $2k$ órdenes. Con $p=1$, $s=\texttt{Derecha}$ y $k=4$ se obtiene el cuadrado del enunciado. $\blacksquare$
+
+**Teorema 6 (`aplicarA`).** Para todo $es$ y toda orden $o$: el resultado tiene la misma longitud que $es$, y el elemento $i$ del resultado es $\mathrm{ej}(o,e_i)$ para cada $i$.
+
+*Demostración.* Por inducción sobre la lista. Con $es=[\,]$, `map` devuelve $[\,]$. Con $es=e_1::es'$, `map` devuelve $f_o(e_1)::\texttt{aplicarA}(es',o)$, y por hipótesis de inducción la cola cumple la propiedad. $\blacksquare$
+
+### 1.4. Corrección de `transformar`
+
+**Terminación.** Cada llamada recursiva es sobre una suborden estricta (el contenido de `Repetir` o un elemento de la lista finita de `Secuencia`).
+
+**Teorema 7 (estructura).** Para toda $o$, $T(o,f)$ tiene la misma forma que $o$ salvo en las hojas: mismos constructores compuestos, mismos `veces` y misma longitud en cada `Secuencia`. Además, $T(o,\mathrm{id})=o$.
+
+*Demostración, por inducción estructural.*
+- `Avanzar(n)`, `Girar(s)`: $T(b,\mathrm{id})=\mathrm{id}(b)=b$.
+- `Repetir(k,o')`: por hipótesis $T(o',\mathrm{id})=o'$, luego $T=\texttt{Repetir}(k,o')$.
+- `Secuencia(os)`: por hipótesis cada $T(o_i,\mathrm{id})=o_i$, luego `map` devuelve la misma lista. $\blacksquare$
+
+**Corolario.** Si $f$ lleva órdenes básicas a órdenes básicas, entonces $B(T(o,f))=B(o)$ y $P(T(o,f))=P(o)$, porque ambas funciones solo dependen de la forma de $o$, que se conserva.
+
+### 1.5. Verificación con los ejemplos del enunciado
+
+| Llamada | Razonamiento | Resultado |
+|---|---|---|
+| `rutina(1)(Derecha)(4)` | $\texttt{Repetir}(4,\texttt{Secuencia}(\texttt{Avanzar}(1),\texttt{Girar}(\texttt{Derecha})))$ | el `cuadrado`, que vuelve a $(0,0,N)$ ✓ |
+| `aplicarA(List(inicial, Estado(5,5,Sur)), Avanzar(2))` | (C3): $(0,0,N)\to(0,2,N)$ y $(5,5,S)\to(5,3,S)$ | `List(Estado(0,2,Norte), Estado(5,3,Sur))` ✓ |
+| `transformar(cuadrado, duplicar avances)` | (C4): `Avanzar(1)` pasa a `Avanzar(2)` | `Repetir(4, Secuencia(List(Avanzar(2), Girar(Derecha))))` ✓ |
+
+### 1.6. Restricciones del taller
+
+| Restricción | Cumplimiento |
+|---|---|
+| `match` en lugar de condicionales | `transformar` usa `match` sobre `Orden` |
+| Sin `var`, `while`, `for`, `return` | Se usan `map` y recursión |
+| Tipos de las funciones de alto orden declarados | `rutina` currificada y `f: Orden => Orden` |
+| Modelo sin modificar | Solo se usan los constructores existentes |
+
+---
+
+## 2. Punto 5: `simplificar`
+
+### 2.1. Qué hay que demostrar
+
+Para toda orden $o$ y todo estado $e$:
+
+$$\mathrm{ej}(\texttt{simplificar}(o),e)=\mathrm{ej}(o,e)$$
+
+Se escribe $\mathrm{nada}=\texttt{Secuencia}(\texttt{Nil})$. Por (E4) con $m=0$, $f_{\mathrm{nada}}=\mathrm{Id}$.
+
+### 2.2. Cada regla conserva el resultado
+
+**Regla 1.**
+- $f_{\texttt{Avanzar}(0)}(x,y,d)=(x+0\cdot v_x(d),\,y+0\cdot v_y(d),\,d)=(x,y,d)$, luego $f_{\texttt{Avanzar}(0)}=\mathrm{Id}=f_{\mathrm{nada}}$ (E1).
+- Si $k\le 0$, $f_{\texttt{Repetir}(k,o)}=\mathrm{Id}=f_{\mathrm{nada}}$ (E3).
+- $f_{\texttt{Repetir}(k,\mathrm{nada})}=\mathrm{Id}^{k}=\mathrm{Id}$.
+
+**Regla 2.** Para $a,b\in\mathbb{Z}$ y cualquier $e=(x,y,d)$:
+
+$$f_{\texttt{Avanzar}(b)}(f_{\texttt{Avanzar}(a)}(e))=(x+a\,v_x(d)+b\,v_x(d),\;y+a\,v_y(d)+b\,v_y(d),\;d)=f_{\texttt{Avanzar}(a+b)}(e)$$
+
+`Avanzar` no cambia la dirección, así que los dos avances usan el mismo $v(d)$.
+
+**Regla 3.** $f_{\texttt{Repetir}(1,o)}=f_o^{1}=f_o$ (E3).
+
+**Regla 4.** $f_{\texttt{Secuencia}([o])}=f_o\circ\mathrm{Id}=f_o$ (E4).
+
+**Regla 5.** Una composición no cambia si se quitan factores $\mathrm{Id}$:
+
+$$f_{o_m}\circ\cdots\circ\mathrm{Id}\circ\cdots\circ f_{o_1}=f_{o_m}\circ\cdots\circ f_{o_1}$$
+
+### 2.3. Congruencia
+
+Si $f_{o}=f_{o'}$, entonces $f_{\texttt{Repetir}(k,o)}=f_{\texttt{Repetir}(k,o')}$ (las potencias de la misma función coinciden). Y si $f_{o_i}=f_{o_i'}$ para cada $i$, entonces $f_{\texttt{Secuencia}([o_i])}=f_{\texttt{Secuencia}([o_i'])}$ (las composiciones coinciden factor a factor). Por tanto, reemplazar una suborden por otra equivalente no cambia el resultado.
+
+### 2.4. Terminación
+
+- `simplificar` solo se llama sobre subórdenes estrictas de $o$, y las listas son finitas.
+- `juntar` termina: la rama de `Avanzar :: Avanzar :: resto` llama sobre una lista con un elemento menos, y la rama `x :: resto` llama sobre `resto`.
+
+### 2.5. Demostración de corrección
+
+Por inducción estructural sobre $o$. Se usa $s=\texttt{simplificar}$.
+
+**`Avanzar(0)`**: devuelve $\mathrm{nada}$, y por la regla 1 es equivalente.
+**`Avanzar(n)` con $n\ne 0$ y `Girar(s')`**: devuelven la misma orden.
+
+**`Repetir(k,o')`.**
+- Si $k\le 0$: devuelve $\mathrm{nada}$, regla 1.
+- Si $k>0$: por hipótesis de inducción $f_{s(o')}=f_{o'}$, y por congruencia $f_{\texttt{Repetir}(k,s(o'))}=f_{\texttt{Repetir}(k,o')}$. Luego, según lo que devuelve `simplificar(o')`:
+  - $\mathrm{nada}$: $f_{o'}=\mathrm{Id}$, así que $f_{\texttt{Repetir}(k,o')}=\mathrm{Id}$ y devolver $\mathrm{nada}$ es equivalente (regla 1).
+  - $s(o')$ con $k=1$: devuelve $s(o')$, equivalente por la regla 3.
+  - En otro caso: devuelve $\texttt{Repetir}(k,s(o'))$, equivalente por congruencia.
+
+**`Secuencia(os)`.** Se razona sobre cada paso del código.
+1. `os.map(simplificar)`: cada elemento es equivalente al original (hipótesis de inducción) y por congruencia la secuencia no cambia de significado.
+2. Primer `filter`: quita elementos que son $\mathrm{Id}$, regla 5.
+3. `juntar`: cada vez que une dos `Avanzar` consecutivos aplica la regla 2.
+4. Segundo `filter`: quita las órdenes vacías y los `Avanzar(0)` creados al juntar, regla 1 y regla 5.
+5. El `match` final: lista vacía devuelve $\mathrm{nada}$, que es la composición vacía (E4). Un elemento devuelve ese elemento, regla 4. Más de un elemento devuelve `Secuencia(xs)`, que ya es la composición de los elementos que quedan.
+
+En todos los casos $f_{s(o)}=f_o$, así que por inducción estructural $\mathrm{ej}(s(o),e)=\mathrm{ej}(o,e)$ para toda $o$ y todo $e$. $\blacksquare$
+
+### 2.6. Verificación con los ejemplos del enunciado
+
+| Llamada | Regla | Resultado |
+|---|---|---|
+| `Secuencia(List(Avanzar(2), Avanzar(3)))` | 2 y 4 | `Avanzar(5)` ✓ |
+| `Repetir(1, Avanzar(4))` | 3 | `Avanzar(4)` ✓ |
+| `Secuencia(List(Avanzar(0), Girar(Derecha)))` | 1, 5 y 4 | `Girar(Derecha)` ✓ |
+| `Secuencia(List(Avanzar(1), Avanzar(2), Girar(Derecha), Avanzar(3)))` | 2 solo en los contiguos | `Secuencia(List(Avanzar(3), Girar(Derecha), Avanzar(3)))` ✓ |
+| `Repetir(0, Avanzar(9))` | 1 | `Secuencia(Nil)` ✓ |
+

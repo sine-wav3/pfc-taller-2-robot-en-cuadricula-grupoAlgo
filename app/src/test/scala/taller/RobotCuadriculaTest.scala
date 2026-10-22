@@ -5,7 +5,7 @@ import org.junit.runner.RunWith
 import org.scalatestplus.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class RobotCuadriculaTest extends AnyFunSuite {
+class  RobotCuadriculaTest extends AnyFunSuite {
 
   val r = new RobotCuadricula()
   import r._
@@ -205,6 +205,36 @@ class RobotCuadriculaTest extends AnyFunSuite {
     assert(transformar(cuadrado, (o: Orden) => o) == cuadrado)
   }
 
+  // Punto 4: pruebas propuestas -----------------------------------------------
+
+  test("componer: acepta una secuencia vacía como segunda orden") {
+    assert(componer(Avanzar(1), Secuencia(Nil)) ==
+      Secuencia(List(Avanzar(1), Secuencia(Nil))))
+  }
+
+  test("rutina: construye la repetición de avance y giro a la izquierda") {
+    assert(rutina(3)(Izquierda)(2) ==
+      Repetir(2, Secuencia(List(Avanzar(3), Girar(Izquierda)))))
+  }
+
+  test("rutina: dos pasos con giro a la izquierda, tres veces") {
+    assert(ejecutar(inicial, rutina(2)(Izquierda)(3)) == Estado(-2, 0, Este))
+  }
+
+  test("aplicarA: un giro sobre varios estados cambia solo la dirección") {
+    assert(aplicarA(List(Estado(1, 1, Este), Estado(0, 0, Oeste)), Girar(Derecha)) ==
+      List(Estado(1, 1, Sur), Estado(0, 0, Norte)))
+  }
+
+  test("transformar: cambiar los giros deja los avances y la estructura") {
+    val o = Secuencia(List(Girar(Izquierda), Repetir(2, Secuencia(List(Avanzar(1), Girar(Izquierda))))))
+    val esperado = Secuencia(List(Girar(Derecha), Repetir(2, Secuencia(List(Avanzar(1), Girar(Derecha))))))
+    assert(transformar(o, {
+      case Girar(_) => Girar(Derecha)
+      case otra => otra
+    }) == esperado)
+  }
+
   // Punto 5 -------------------------------------------------------------------
 
   test("simplificar: dos avances seguidos se juntan") {
@@ -257,4 +287,45 @@ class RobotCuadriculaTest extends AnyFunSuite {
   test("simplificar: el anidamiento interior también se reduce") {
     assert(simplificar(Repetir(3, Repetir(1, Avanzar(2)))) == Repetir(3, Avanzar(2)))
   }
+
+  // Punto 5: pruebas propuestas -----------------------------------------------
+
+  test("simplificar: simplifica dentro de un Repetir") {
+    assert(simplificar(Repetir(2, Secuencia(List(Avanzar(1), Avanzar(2))))) ==
+      Repetir(2, Avanzar(3)))
+  }
+
+  test("simplificar: quitar una orden vacía habilita juntar los avances") {
+    assert(simplificar(Secuencia(List(Avanzar(1), Repetir(0, Girar(Derecha)), Avanzar(2)))) ==
+      Avanzar(3))
+  }
+
+  test("simplificar: una secuencia de un solo elemento es ese elemento") {
+    assert(simplificar(Secuencia(List(Avanzar(5)))) == Avanzar(5))
+  }
+
+  test("simplificar: Avanzar(0) se vuelve la secuencia vacía") {
+    assert(simplificar(Avanzar(0)) == Secuencia(Nil))
+  }
+
+  test("simplificar: los giros no se juntan ni se tocan") {
+    val o = Secuencia(List(Girar(Izquierda), Girar(Derecha)))
+    assert(simplificar(o) == o)
+  }
+
+  test("simplificar: no cambia el resultado en órdenes con varias pasadas") {
+    val estados = List(inicial, Estado(2, -3, Oeste), Estado(-4, 1, Sur))
+    val ordenes = List(
+      Secuencia(List(Avanzar(2), Repetir(1, Secuencia(List(Avanzar(3), Avanzar(0)))), Avanzar(-5), Girar(Derecha))),
+      Repetir(2, Secuencia(List(Avanzar(1), Avanzar(2)))),
+      Secuencia(List(Avanzar(1), Repetir(0, Girar(Derecha)), Avanzar(2))),
+      Repetir(-1, Avanzar(3)),
+      Secuencia(List(Avanzar(5))))
+    assert(ordenes.forall(o =>
+      estados.forall(e => ejecutar(e, o) == ejecutar(e, simplificar(o)))))
+  }
 }
+
+
+
+
