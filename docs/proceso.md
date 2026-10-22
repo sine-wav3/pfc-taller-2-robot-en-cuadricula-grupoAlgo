@@ -704,3 +704,234 @@ Las funciones `cuantasBasicas` y `profundidad` recorren la estructura recursiva 
 `cuantasBasicas` cuenta las órdenes básicas que se ejecutarían, teniendo en cuenta las repeticiones y sumando los elementos de las secuencias. `profundidad` calcula los niveles de anidamiento, sumando un nivel para cada orden compuesta y tomando la rama más profunda en las secuencias.
 
 Ambas funciones trabajan sin modificar el estado del robot y sin ejecutar movimientos. Así, permiten analizar una orden antes de pasarla a la función `ejecutar`.
+
+
+---
+## Punto 4: rutinas con funciones de alto orden
+
+```scala
+def componer(o1: Orden, o2: Orden): Orden =
+  Secuencia(List(o1, o2))
+
+def rutina(pasos: Int)(giro: Sentido)(veces: Int): Orden =
+  Repetir(veces, Secuencia(List(Avanzar(pasos), Girar(giro))))
+
+def aplicarA(estados: List[Estado], o: Orden): List[Estado] =
+  estados.map(e => ejecutar(e, o))
+
+def transformar(o: Orden, f: Orden => Orden): Orden = o match {
+  case Avanzar(_) => f(o)
+  case Girar(_) => f(o)
+  case Repetir(veces, orden) => Repetir(veces, transformar(orden, f))
+  case Secuencia(ordenes) => Secuencia(ordenes.map(x => transformar(x, f)))
+}
+```
+
+### Ejecución paso a paso
+
+**`componer(o1, o2)`**
+1. Recibe dos órdenes.
+2. Devuelve `Secuencia(List(o1, o2))`. No ejecuta nada: solo construye la orden.
+
+**`rutina(pasos)(giro)(veces)`**
+1. Está currificada. `rutina(pasos)` es una función `Sentido => Int => Orden`, y `rutina(pasos)(giro)` es una función `Int => Orden` que espera las veces.
+2. Al recibir `veces`, arma `Repetir(veces, Secuencia(List(Avanzar(pasos), Girar(giro))))`.
+
+**`aplicarA(estados, o)`**
+1. `map` recorre la lista de estados.
+2. A cada estado `e` le aplica `ejecutar(e, o)`.
+3. Devuelve una lista nueva, del mismo largo y en el mismo orden.
+
+**`transformar(o, f)`**
+1. `Avanzar` y `Girar` son órdenes básicas: se devuelve `f(o)`.
+2. `Repetir(veces, orden)` conserva `veces` y transforma `orden` recursivamente.
+3. `Secuencia(ordenes)` transforma cada elemento con `map` y conserva el orden.
+
+```mermaid
+flowchart TD
+    A["transformar(o, f)"] --> B{"match sobre o"}
+    B -->|"Avanzar(n)"| C["f(o)"]
+    B -->|"Girar(s)"| D["f(o)"]
+    B -->|"Repetir(v, orden)"| E["Repetir(v, transformar(orden, f))"]
+    B -->|"Secuencia(os)"| F["Secuencia(os.map(transformar(_, f)))"]
+```
+
+### Trazas de posiciones
+
+#### Traza 1: `componer`, `ejecutar(inicial, componer(Avanzar(2), Girar(Derecha)))`
+
+| Paso | Orden | Estado |
+|---|---|---|
+| 0 | (inicio) | $(0, 0, N)$ |
+| 1 | `Avanzar(2)` | $(0, 2, N)$ |
+| 2 | `Girar(Derecha)` | $(0, 2, E)$ |
+
+**Resultado:** `Estado(0, 2, Este)`.
+
+#### Traza 2: `rutina`, `ejecutar(inicial, rutina(2)(Izquierda)(3))`
+
+`rutina(2)(Izquierda)(3)` construye `Repetir(3, Secuencia(List(Avanzar(2), Girar(Izquierda))))`.
+
+| Vuelta | Orden | Cálculo | Estado |
+|---|---|---|---|
+| | (inicio) | | $(0, 0, N)$ |
+| 1 | `Avanzar(2)` | norte: $y = 0 + 2$ | $(0, 2, N)$ |
+| 1 | `Girar(Izquierda)` | Norte a la izquierda es Oeste | $(0, 2, O)$ |
+| 2 | `Avanzar(2)` | oeste: $x = 0 - 2$ | $(-2, 2, O)$ |
+| 2 | `Girar(Izquierda)` | Oeste a la izquierda es Sur | $(-2, 2, S)$ |
+| 3 | `Avanzar(2)` | sur: $y = 2 - 2$ | $(-2, 0, S)$ |
+| 3 | `Girar(Izquierda)` | Sur a la izquierda es Este | $(-2, 0, E)$ |
+
+**Resultado:** `Estado(-2, 0, Este)`.
+
+#### Traza 3: `aplicarA(List(Estado(0, 0, Este), Estado(2, 3, Oeste)), Avanzar(4))`
+
+| Estado inicial | Cálculo | Estado final |
+|---|---|---|
+| $(0, 0, E)$ | este: $x = 0 + 4$ | $(4, 0, E)$ |
+| $(2, 3, O)$ | oeste: $x = 2 - 4$ | $(-2, 3, O)$ |
+
+**Resultado:** `List(Estado(4, 0, Este), Estado(-2, 3, Oeste))`.
+
+#### Traza 4: `transformar` triplicando los avances
+
+Orden: `Repetir(2, Secuencia(List(Avanzar(1), Girar(Izquierda))))`, con `f = { case Avanzar(n) => Avanzar(3 * n); case otra => otra }`.
+
+```text
+transformar(Repetir(2, Secuencia(List(Avanzar(1), Girar(Izquierda)))), f)
+= Repetir(2, transformar(Secuencia(List(Avanzar(1), Girar(Izquierda))), f))
+= Repetir(2, Secuencia(List(transformar(Avanzar(1), f), transformar(Girar(Izquierda), f))))
+= Repetir(2, Secuencia(List(f(Avanzar(1)), f(Girar(Izquierda)))))
+= Repetir(2, Secuencia(List(Avanzar(3), Girar(Izquierda))))
+```
+
+| Orden | Posiciones desde `inicial` |
+|---|---|
+| Original | $(0,0,N) \to (0,1,N) \to (0,1,O) \to (-1,1,O) \to (-1,1,S)$ |
+| Transformada | $(0,0,N) \to (0,3,N) \to (0,3,O) \to (-3,3,O) \to (-3,3,S)$ |
+
+La estructura (`Repetir`, `Secuencia`, los giros) no cambia. Solo cambian los avances.
+
+---
+
+## Punto 5: `simplificar`
+
+```scala
+def simplificar(o: Orden): Orden = {
+  val nada: Orden = Secuencia(Nil)
+
+  def juntar(l: List[Orden]): List[Orden] = l match {
+    case Avanzar(a) :: Avanzar(b) :: resto => juntar(Avanzar(a + b) :: resto)
+    case x :: resto => x :: juntar(resto)
+    case Nil => Nil
+  }
+
+  o match {
+    case Avanzar(0) => nada
+    case Avanzar(_) => o
+    case Girar(_) => o
+    case Repetir(veces, _) if veces <= 0 => nada
+    case Repetir(veces, orden) =>
+      simplificar(orden) match {
+        case Secuencia(Nil) => nada
+        case s if veces == 1 => s
+        case s => Repetir(veces, s)
+      }
+    case Secuencia(ordenes) =>
+      val hijos = ordenes.map(simplificar).filter(h => h != nada)
+      juntar(hijos).filter(h => h != nada && h != Avanzar(0)) match {
+        case Nil => nada
+        case x :: Nil => x
+        case xs => Secuencia(xs)
+      }
+  }
+}
+```
+
+### Idea general
+
+`simplificar` recorre la orden con `match`. Primero simplifica las órdenes interiores, y así las reglas se aplican de abajo hacia arriba, de modo que lo que una regla habilita lo aprovecha la siguiente. Con eso no hace falta repetir pasadas desde fuera: una sola llamada deja la orden en su forma final.
+
+| Regla del enunciado | Dónde se aplica |
+|---|---|
+| 1. `Avanzar(0)` y `Repetir(0, _)` son `Secuencia(Nil)` | `case Avanzar(0)`, `case Repetir(veces, _) if veces <= 0`, y `Repetir` de una orden vacía |
+| 2. Dos `Avanzar` seguidos se juntan | `juntar` |
+| 3. `Repetir(1, o)` es `o` | `case s if veces == 1` |
+| 4. Secuencia de un solo elemento es ese elemento | `case x :: Nil` |
+| 5. Las órdenes vacías se quitan de las secuencias | los dos `filter` |
+
+### Ejecución paso a paso (`Secuencia`)
+
+1. Se simplifica cada orden de la lista y se descartan las que no hacen nada.
+2. `juntar` suma los `Avanzar` contiguos. Si la suma da `Avanzar(0)`, ese resultado se vuelve a juntar con el siguiente si es otro `Avanzar`.
+3. Se descartan las órdenes vacías y los `Avanzar(0)` que hayan quedado.
+4. Lista vacía: `Secuencia(Nil)`. Un elemento: ese elemento. Si no, `Secuencia(xs)`.
+
+```mermaid
+flowchart TD
+    A["simplificar(Secuencia(os))"] --> B["simplificar cada elemento"]
+    B --> C["quitar órdenes vacías"]
+    C --> D["juntar Avanzar contiguos"]
+    D --> E["quitar órdenes vacías y Avanzar(0)"]
+    E --> F{"¿cuántos quedan?"}
+    F -->|"0"| G["Secuencia(Nil)"]
+    F -->|"1"| H["ese elemento"]
+    F -->|"más"| I["Secuencia(lista)"]
+```
+
+### Trazas
+
+#### Traza 1: reglas 2 y 4
+
+`simplificar(Secuencia(List(Avanzar(2), Avanzar(3))))`: ambos hijos quedan igual. `juntar` da `List(Avanzar(5))`. Queda un solo elemento.
+
+**Resultado:** `Avanzar(5)`.
+
+#### Traza 2: `Repetir(0, Avanzar(9))`
+
+Se cumple la guarda `veces <= 0`.
+
+**Resultado:** `Secuencia(Nil)`.
+
+#### Traza 3: avances que se cancelan, `Secuencia(List(Avanzar(2), Avanzar(-2)))`
+
+| Paso | Acción | Resultado |
+|---|---|---|
+| 1 | Simplificar cada hijo | `List(Avanzar(2), Avanzar(-2))` |
+| 2 | `juntar`: $2+(-2)=0$ | `List(Avanzar(0))` |
+| 3 | Quitar `Avanzar(0)` (regla 5) | `Nil` |
+| 4 | Lista vacía | `Secuencia(Nil)` |
+
+**Resultado:** `Secuencia(Nil)`.
+
+#### Traza 4: una orden que necesita varias reglas
+
+`o = Secuencia(List(Avanzar(2), Repetir(1, Secuencia(List(Avanzar(3), Avanzar(0)))), Avanzar(-5), Girar(Derecha)))`
+
+| Paso | Acción | Resultado |
+|---|---|---|
+| 1 | Simplificar `Avanzar(2)` | `Avanzar(2)` |
+| 2 | Simplificar `Secuencia(List(Avanzar(3), Avanzar(0)))`: `Avanzar(0)` se vuelve vacía y se quita (regla 5) | lista `List(Avanzar(3))` |
+| 3 | Un solo elemento (regla 4) | `Avanzar(3)` |
+| 4 | `Repetir(1, Avanzar(3))` (regla 3) | `Avanzar(3)` |
+| 5 | `Avanzar(-5)` y `Girar(Derecha)` | sin cambios |
+| 6 | Lista de hijos | `List(Avanzar(2), Avanzar(3), Avanzar(-5), Girar(Derecha))` |
+| 7 | `juntar`: $2+3=5$ | `List(Avanzar(5), Avanzar(-5), Girar(Derecha))` |
+| 8 | `juntar`: $5+(-5)=0$ | `List(Avanzar(0), Girar(Derecha))` |
+| 9 | Quitar `Avanzar(0)` (regla 5) | `List(Girar(Derecha))` |
+| 10 | Un solo elemento (regla 4) | `Girar(Derecha)` |
+
+**Resultado:** `Girar(Derecha)`.
+
+Posiciones desde `inicial`:
+
+| Orden | Posiciones |
+|---|---|
+| Original | $(0,0,N) \to (0,2,N) \to (0,5,N) \to (0,0,N) \to (0,0,E)$ |
+| Simplificada | $(0,0,N) \to (0,0,E)$ |
+
+Ambas terminan en `Estado(0, 0, Este)`.
+
+#### Traza 5: `Repetir(3, Repetir(1, Avanzar(2)))`
+
+La orden interior `Repetir(1, Avanzar(2))` pasa a `Avanzar(2)` (regla 3). Como 3 no es 1, queda `Repetir(3, Avanzar(2))`.
