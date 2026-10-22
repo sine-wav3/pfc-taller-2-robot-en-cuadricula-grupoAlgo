@@ -126,7 +126,7 @@ class RobotCuadricula {
         }
       case Secuencia(ordenes) =>
         val hijos = ordenes.map(simplificar).filter(h => h != nada)
-        juntar(hijos).filter(h => h != nada) match {
+        juntar(hijos).filter(h => h != nada && h != Avanzar(0)) match {
           case Nil => nada
           case x :: Nil => x
           case xs => Secuencia(xs)
