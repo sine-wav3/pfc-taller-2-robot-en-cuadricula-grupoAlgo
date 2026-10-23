@@ -193,7 +193,7 @@ $$\mathrm{ej}(\texttt{Secuencia}(o_1,o_2),\,e) = \mathrm{ej}(o_2,\,\mathrm{ej}(o
 
 $$\mathrm{ej}(\texttt{Secuencia}(os_1 \mathbin{+\!\!+} os_2),\,e) = \mathrm{ej}(\texttt{Secuencia}(os_2),\,\mathrm{ej}(\texttt{Secuencia}(os_1),\,e))$$
 
-*Demostración.* Si $os_1=[a_1,\dots,a_p]$ y $os_2=[b_1,\dots,b_q]$, por (E4) el lado izquierdo es $(f_{b_q}\circ\cdots\circ f_{b_1}\circ f_{a_p}\circ\cdots\circ f_{a_1})(e)$, que es la composición $(f_{b_q}\circ\cdots\circ f_{b_1})\big((f_{a_p}\circ\cdots\circ f_{a_1})(e)\big)$, el lado derecho. $\blacksquare$
+*Demostración.* Si $os_1=[a_1,\dots,a_p]$ y $os_2=[b_1,\dots,b_q]$, por (E4) el lado izquierdo es $(f_{b_q}\circ\cdots\circ f_{b_1}\circ f_{a_p}\circ\cdots\circ f_{a_1})(e)$, que es la composición $(f_{b_q}\circ\cdots\circ f_{b_1})\big((f_{a_p}\circ\cdots\circ f_{a_1})(e)\big)$, el lado derecho. 
 
 **Teorema 3 (repetir equivale a la secuencia de copias).** Para todo $k\ge 0$ y todo $e$:
 
@@ -665,7 +665,7 @@ $$\mathrm{ej}(\texttt{componer}(o_1,o_2),e)=\mathrm{ej}(o_2,\mathrm{ej}(o_1,e))$
 
 $$\mathrm{ej}(\texttt{rutina}(p)(s)(k),e)=\mathrm{ej}(\texttt{Secuencia}(\underbrace{a,g,\dots,a,g}_{k\text{ veces el par}}),e)$$
 
-*Demostración.* `rutina` construye $\texttt{Repetir}(k,c)$ con $c=\texttt{Secuencia}(a,g)$. Por el Teorema 3, esto es $\mathrm{ej}(\texttt{Secuencia}(c,\dots,c),e)=f_c^{k}(e)$. Por el Teorema 1, $f_c=f_g\circ f_a$. Entonces $f_c^{k}(e)$ aplica $k$ veces "avanzar $p$ y girar $s$", que es la ejecución en orden de las $2k$ órdenes. Con $p=1$, $s=\texttt{Derecha}$ y $k=4$ se obtiene el cuadrado del enunciado. $\blacksquare$
+*Demostración.* `rutina` construye $\texttt{Repetir}(k,c)$ con $c=\texttt{Secuencia}(a,g)$. Por el Teorema 3, esto es $\mathrm{ej}(\texttt{Secuencia}(c,\dots,c),e)=f_c^{k}(e)$. Por el Teorema 1, $f_c=f_g\circ f_a$. Entonces $f_c^{k}(e)$ aplica $k$ veces "avanzar $p$ y girar $s$", que es la ejecución en orden de las $2k$ órdenes. Con $p=1$, $s=\texttt{Derecha}$ y $k=4$ se obtiene el cuadrado del enunciado. 
 
 **Teorema 6 (`aplicarA`).** Para todo $es$ y toda orden $o$: el resultado tiene la misma longitud que $es$, y el elemento $i$ del resultado es $\mathrm{ej}(o,e_i)$ para cada $i$.
 
