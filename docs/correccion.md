@@ -45,14 +45,14 @@ El código tiene un caso por cada pareja $(d,s)$. Hay $4\times 2=8$ parejas y el
 
 | $d$ | $\theta(d)$ | Sentido | Fórmula | Resultado esperado | Código devuelve |
 |---|---|---|---|---|---|
-| Norte | 0 | Derecha | $(0+1) \bmod 4 = 1$ | Este | Este ✓ |
-| Este | 1 | Derecha | $(1+1) \bmod 4 = 2$ | Sur | Sur ✓ |
-| Sur | 2 | Derecha | $(2+1) \bmod 4 = 3$ | Oeste | Oeste ✓ |
-| Oeste | 3 | Derecha | $(3+1) \bmod 4 = 0$ | Norte | Norte ✓ |
-| Norte | 0 | Izquierda | $(0+3) \bmod 4 = 3$ | Oeste | Oeste ✓ |
-| Oeste | 3 | Izquierda | $(3+3) \bmod 4 = 2$ | Sur | Sur ✓ |
-| Sur | 2 | Izquierda | $(2+3) \bmod 4 = 1$ | Este | Este ✓ |
-| Este | 1 | Izquierda | $(1+3) \bmod 4 = 0$ | Norte | Norte ✓ |
+| Norte | 0 | Derecha | $(0+1) \bmod 4 = 1$ | Este | Este |
+| Este | 1 | Derecha | $(1+1) \bmod 4 = 2$ | Sur | Sur |
+| Sur | 2 | Derecha | $(2+1) \bmod 4 = 3$ | Oeste | Oeste |
+| Oeste | 3 | Derecha | $(3+1) \bmod 4 = 0$ | Norte | Norte |
+| Norte | 0 | Izquierda | $(0+3) \bmod 4 = 3$ | Oeste | Oeste |
+| Oeste | 3 | Izquierda | $(3+3) \bmod 4 = 2$ | Sur | Sur |
+| Sur | 2 | Izquierda | $(2+3) \bmod 4 = 1$ | Este | Este |
+| Este | 1 | Izquierda | $(1+3) \bmod 4 = 0$ | Norte | Norte |
 
 **Totalidad.** `Direccion` y `Sentido` son `sealed`, así que sus únicos valores son los 4 y los 2 declarados. Los 8 casos cubren todas las parejas posibles, por lo que `girar` está definida para toda entrada y nunca falla con un `MatchError`.
 
@@ -126,10 +126,10 @@ El código hace `match` sobre `e.mira`:
 
 | `e.mira` | Código | $v(d)$ | Fórmula E1 |
 |---|---|---|---|
-| Norte | $y \leftarrow y+n$ | $(0,1)$ | $(x+0,\; y+n)$ ✓ |
-| Sur | $y \leftarrow y-n$ | $(0,-1)$ | $(x+0,\; y-n)$ ✓ |
-| Este | $x \leftarrow x+n$ | $(1,0)$ | $(x+n,\; y+0)$ ✓ |
-| Oeste | $x \leftarrow x-n$ | $(-1,0)$ | $(x-n,\; y+0)$ ✓ |
+| Norte | $y \leftarrow y+n$ | $(0,1)$ | $(x+0,\; y+n)$ |
+| Sur | $y \leftarrow y-n$ | $(0,-1)$ | $(x+0,\; y-n)$ |
+| Este | $x \leftarrow x+n$ | $(1,0)$ | $(x+n,\; y+0)$ |
+| Oeste | $x \leftarrow x-n$ | $(-1,0)$ | $(x-n,\; y+0)$ |
 
 En todos los casos el resultado coincide con (E1), y `copy` conserva la dirección. Como la fórmula es válida para cualquier entero $n$, el caso negativo ya está cubierto: $n<0$ desplaza en sentido contrario al que mira el robot, es decir, retrocede.
 
@@ -187,7 +187,7 @@ El punto 2 dice que `Repetir` y `Secuencia` son órdenes que contienen otras ór
 
 $$\mathrm{ej}(\texttt{Secuencia}(o_1,o_2),\,e) = \mathrm{ej}(o_2,\,\mathrm{ej}(o_1,\,e))$$
 
-*Demostración.* Es (E4) con $m=2$: $(f_{o_2}\circ f_{o_1})(e)$. $\blacksquare$
+*Demostración.* Es (E4) con $m=2$: $(f_{o_2}\circ f_{o_1})(e)$. 
 
 **Teorema 2 (concatenación de secuencias).** Para todo $e$:
 
@@ -199,7 +199,7 @@ $$\mathrm{ej}(\texttt{Secuencia}(os_1 \mathbin{+\!\!+} os_2),\,e) = \mathrm{ej}(
 
 $$\mathrm{ej}(\texttt{Repetir}(k,o),\,e) = \mathrm{ej}(\texttt{Secuencia}(\underbrace{o,\dots,o}_{k}),\,e)$$
 
-*Demostración.* Por (E3) el lado izquierdo es $f_o^{k}(e)$ (con $k=0$ da $e$). Por (E4) el derecho es $(f_o\circ\cdots\circ f_o)(e)$ con $k$ factores, que es también $f_o^{k}(e)$. $\blacksquare$
+*Demostración.* Por (E3) el lado izquierdo es $f_o^{k}(e)$ (con $k=0$ da $e$). Por (E4) el derecho es $(f_o\circ\cdots\circ f_o)(e)$ con $k$ factores, que es también $f_o^{k}(e)$.
 
 ---
 
@@ -207,11 +207,11 @@ $$\mathrm{ej}(\texttt{Repetir}(k,o),\,e) = \mathrm{ej}(\texttt{Secuencia}(\under
 
 | Llamada | Razonamiento | Resultado |
 |---|---|---|
-| `ejecutar(inicial, Avanzar(3))` | E1 con $d=N$: $(0+0,\;0+3)$ | $(0,3,N)$ ✓ |
-| `ejecutar(inicial, Avanzar(-2))` | E1 con $d=N$, $n=-2$: $(0,\;0-2)$ | $(0,-2,N)$ ✓ |
-| `ejecutar(inicial, Repetir(0, Avanzar(5)))` | E3 con $k=0\le 0$ | $(0,0,N)$ ✓ |
-| `ejecutar(inicial, Secuencia(Nil))` | E4 con $m=0$ | $(0,0,N)$ ✓ |
-| `Secuencia(Avanzar(2), Girar(Derecha), Avanzar(4))` | Teorema 1 dos veces: $(0,2,N)\to(0,2,E)\to(4,2,E)$ | $(4,2,E)$ ✓ |
+| `ejecutar(inicial, Avanzar(3))` | E1 con $d=N$: $(0+0,\;0+3)$ | $(0,3,N)$ |
+| `ejecutar(inicial, Avanzar(-2))` | E1 con $d=N$, $n=-2$: $(0,\;0-2)$ | $(0,-2,N)$ |
+| `ejecutar(inicial, Repetir(0, Avanzar(5)))` | E3 con $k=0\le 0$ | $(0,0,N)$ |
+| `ejecutar(inicial, Secuencia(Nil))` | E4 con $m=0$ | $(0,0,N)$ |
+| `Secuencia(Avanzar(2), Girar(Derecha), Avanzar(4))` | Teorema 1 dos veces: $(0,2,N)\to(0,2,E)\to(4,2,E)$ | $(4,2,E)$ |
 
 ### El cuadrado vuelve al punto de partida (para cualquier estado)
 
@@ -225,8 +225,8 @@ $$f_c(x,y,d) = (x+v_x(d),\; y+v_y(d),\; d')\quad\text{con}\quad \theta(d')=(\the
 
 $$f_c^{\,j}(x,y,d) = \Big(x+\sum_{i=0}^{j-1} v_x(d_i),\;\; y+\sum_{i=0}^{j-1} v_y(d_i),\;\; d_j\Big),\qquad \theta(d_i)=(\theta(d)+i) \bmod 4$$
 
-*Base* $j=0$: sumas vacías, resultado $(x,y,d)$. ✓
-*Paso*: aplicar $f_c$ al estado de $j$ vueltas suma $v(d_j)$ y gira a $d_{j+1}$, con $\theta(d_{j+1})=(\theta(d)+j+1) \bmod 4$. ✓
+*Base* $j=0$: sumas vacías, resultado $(x,y,d)$.
+*Paso*: aplicar $f_c$ al estado de $j$ vueltas suma $v(d_j)$ y gira a $d_{j+1}$, con $\theta(d_{j+1})=(\theta(d)+j+1) \bmod 4$.
 
 **Paso 3: cuatro vueltas.** Las cuatro direcciones $d_0,d_1,d_2,d_3$ son una permutación de $\{N,E,S,O\}$, así que:
 
@@ -236,7 +236,7 @@ Además $\theta(d_4)=(\theta(d)+4) \bmod 4=\theta(d)$, o sea $d_4=d$ (propiedad 
 
 $$\mathrm{ej}(\texttt{cuadrado},\,(x,y,d)) = (x,y,d)\quad\text{para todo estado}$$
 
-En particular, desde `inicial` el resultado es $(0,0,N)$, como pide el enunciado. ✓
+En particular, desde `inicial` el resultado es $(0,0,N)$, como pide el enunciado. 
 
 ---
 
@@ -483,12 +483,15 @@ El argumento es el mismo de `cuantasBasicas`. Las llamadas recursivas se hacen s
 
 **Caso `Secuencia([o_1, ..., o_m])`.**
 
-- Si $m = 0$, el código devuelve $1$, que es el valor que fija el enunciado.
-- Si $m \ge 1$, por hipótesis de inducción `profundidad(o_i)` $= P(o_i)$ para cada $i$. Entonces `ordenes.map(profundidad)` es la lista $[P(o_1),\dots,P(o_m)]$, y el código devuelve
-  $$
-  1 + \max_{1 \le i \le m} P(o_i)
-  $$
-  que es (P3).
+Si $m = 0$, el código devuelve $1$, que es el valor que fija el enunciado.
+
+Si $m \ge 1$, por hipótesis de inducción `profundidad(o_i)` $= P(o_i)$ para cada $i$. Entonces `ordenes.map(profundidad)` es la lista $[P(o_1),\dots,P(o_m)]$, y el código devuelve
+
+$$
+1 + \max_{1 \le i \le m} P(o_i)
+$$
+
+que es (P3).
 
 **Caso `Repetir(k, o)`.** Por hipótesis de inducción `profundidad(o)` $= P(o)$, y el código devuelve $1 + P(o)$, que es (P4) para cualquier valor de $k$.
 
@@ -656,7 +659,7 @@ $$T(b,f)=f(b),\quad T(\texttt{Repetir}(k,o),f)=\texttt{Repetir}(k,T(o,f)),\quad 
 
 $$\mathrm{ej}(\texttt{componer}(o_1,o_2),e)=\mathrm{ej}(o_2,\mathrm{ej}(o_1,e))$$
 
-*Demostración.* `componer` construye $\texttt{Secuencia}(o_1,o_2)$, y el Teorema 1 da exactamente esa igualdad. $\blacksquare$
+*Demostración.* `componer` construye $\texttt{Secuencia}(o_1,o_2)$, y el Teorema 1 da exactamente esa igualdad. 
 
 **Teorema 5 (`rutina`).** Para todo $k\ge 0$ y todo $e$:
 
@@ -666,7 +669,7 @@ $$\mathrm{ej}(\texttt{rutina}(p)(s)(k),e)=\mathrm{ej}(\texttt{Secuencia}(\underb
 
 **Teorema 6 (`aplicarA`).** Para todo $es$ y toda orden $o$: el resultado tiene la misma longitud que $es$, y el elemento $i$ del resultado es $\mathrm{ej}(o,e_i)$ para cada $i$.
 
-*Demostración.* Por inducción sobre la lista. Con $es=[\,]$, `map` devuelve $[\,]$. Con $es=e_1::es'$, `map` devuelve $f_o(e_1)::\texttt{aplicarA}(es',o)$, y por hipótesis de inducción la cola cumple la propiedad. $\blacksquare$
+*Demostración.* Por inducción sobre la lista. Con $es=[\,]$, `map` devuelve $[\,]$. Con $es=e_1::es'$, `map` devuelve $f_o(e_1)::\texttt{aplicarA}(es',o)$, y por hipótesis de inducción la cola cumple la propiedad. 
 
 ### 4.4. Corrección de `transformar`
 
@@ -677,7 +680,7 @@ $$\mathrm{ej}(\texttt{rutina}(p)(s)(k),e)=\mathrm{ej}(\texttt{Secuencia}(\underb
 *Demostración, por inducción estructural.*
 - `Avanzar(n)`, `Girar(s)`: $T(b,\mathrm{id})=\mathrm{id}(b)=b$.
 - `Repetir(k,o')`: por hipótesis $T(o',\mathrm{id})=o'$, luego $T=\texttt{Repetir}(k,o')$.
-- `Secuencia(os)`: por hipótesis cada $T(o_i,\mathrm{id})=o_i$, luego `map` devuelve la misma lista. $\blacksquare$
+- `Secuencia(os)`: por hipótesis cada $T(o_i,\mathrm{id})=o_i$, luego `map` devuelve la misma lista. 
 
 **Corolario.** Si $f$ lleva órdenes básicas a órdenes básicas, entonces $B(T(o,f))=B(o)$ y $P(T(o,f))=P(o)$, porque ambas funciones solo dependen de la forma de $o$, que se conserva.
 
@@ -685,9 +688,9 @@ $$\mathrm{ej}(\texttt{rutina}(p)(s)(k),e)=\mathrm{ej}(\texttt{Secuencia}(\underb
 
 | Llamada | Razonamiento | Resultado |
 |---|---|---|
-| `rutina(1)(Derecha)(4)` | $\texttt{Repetir}(4,\texttt{Secuencia}(\texttt{Avanzar}(1),\texttt{Girar}(\texttt{Derecha})))$ | el `cuadrado`, que vuelve a $(0,0,N)$ ✓ |
-| `aplicarA(List(inicial, Estado(5,5,Sur)), Avanzar(2))` | (C3): $(0,0,N)\to(0,2,N)$ y $(5,5,S)\to(5,3,S)$ | `List(Estado(0,2,Norte), Estado(5,3,Sur))` ✓ |
-| `transformar(cuadrado, duplicar avances)` | (C4): `Avanzar(1)` pasa a `Avanzar(2)` | `Repetir(4, Secuencia(List(Avanzar(2), Girar(Derecha))))` ✓ |
+| `rutina(1)(Derecha)(4)` | $\texttt{Repetir}(4,\texttt{Secuencia}(\texttt{Avanzar}(1),\texttt{Girar}(\texttt{Derecha})))$ | el `cuadrado`, que vuelve a $(0,0,N)$ |
+| `aplicarA(List(inicial, Estado(5,5,Sur)), Avanzar(2))` | (C3): $(0,0,N)\to(0,2,N)$ y $(5,5,S)\to(5,3,S)$ | `List(Estado(0,2,Norte), Estado(5,3,Sur))` |
+| `transformar(cuadrado, duplicar avances)` | (C4): `Avanzar(1)` pasa a `Avanzar(2)` | `Repetir(4, Secuencia(List(Avanzar(2), Girar(Derecha))))` |
 
 ### 4.6. Restricciones del taller
 
@@ -761,15 +764,15 @@ Por inducción estructural sobre $o$. Se usa $s=\texttt{simplificar}$.
 4. Segundo `filter`: quita las órdenes vacías y los `Avanzar(0)` creados al juntar, regla 1 y regla 5.
 5. El `match` final: lista vacía devuelve $\mathrm{nada}$, que es la composición vacía (E4). Un elemento devuelve ese elemento, regla 4. Más de un elemento devuelve `Secuencia(xs)`, que ya es la composición de los elementos que quedan.
 
-En todos los casos $f_{s(o)}=f_o$, así que por inducción estructural $\mathrm{ej}(s(o),e)=\mathrm{ej}(o,e)$ para toda $o$ y todo $e$. $\blacksquare$
+En todos los casos $f_{s(o)}=f_o$, así que por inducción estructural $\mathrm{ej}(s(o),e)=\mathrm{ej}(o,e)$ para toda $o$ y todo $e$.
 
 ### 5.6. Verificación con los ejemplos del enunciado
 
 | Llamada | Regla | Resultado |
 |---|---|---|
-| `Secuencia(List(Avanzar(2), Avanzar(3)))` | 2 y 4 | `Avanzar(5)` ✓ |
-| `Repetir(1, Avanzar(4))` | 3 | `Avanzar(4)` ✓ |
-| `Secuencia(List(Avanzar(0), Girar(Derecha)))` | 1, 5 y 4 | `Girar(Derecha)` ✓ |
-| `Secuencia(List(Avanzar(1), Avanzar(2), Girar(Derecha), Avanzar(3)))` | 2 solo en los contiguos | `Secuencia(List(Avanzar(3), Girar(Derecha), Avanzar(3)))` ✓ |
-| `Repetir(0, Avanzar(9))` | 1 | `Secuencia(Nil)` ✓ |
+| `Secuencia(List(Avanzar(2), Avanzar(3)))` | 2 y 4 | `Avanzar(5)` |
+| `Repetir(1, Avanzar(4))` | 3 | `Avanzar(4)` |
+| `Secuencia(List(Avanzar(0), Girar(Derecha)))` | 1, 5 y 4 | `Girar(Derecha)` |
+| `Secuencia(List(Avanzar(1), Avanzar(2), Girar(Derecha), Avanzar(3)))` | 2 solo en los contiguos | `Secuencia(List(Avanzar(3), Girar(Derecha), Avanzar(3)))` |
+| `Repetir(0, Avanzar(9))` | 1 | `Secuencia(Nil)` |
 
