@@ -294,61 +294,83 @@ def cuantasBasicas(o: Orden): Int = o match {
 
 ### Idea general
 
-La función utiliza `match` para identificar la alternativa de `Orden` que recibe.
+La función usa `match` para identificar qué alternativa de `Orden` recibe.
 
-Las órdenes básicas, `Avanzar` y `Girar`, cuentan como una unidad cada una. En el caso de `Repetir`, se calcula cuántas órdenes básicas contiene la orden repetida y se multiplica por el número de repeticiones. Si el número de repeticiones es cero o negativo, el resultado es cero.
+Las órdenes básicas, `Avanzar` y `Girar`, cuentan como una unidad cada una, sin importar sus argumentos.
+
+En el caso de `Repetir`, se calcula cuántas órdenes básicas contiene la orden repetida y se multiplica por el número de repeticiones. Si el número de repeticiones es cero o negativo, el resultado es cero.
 
 En el caso de `Secuencia`, se cuentan las órdenes básicas de cada elemento de la lista y se suman los resultados. Si la lista está vacía, la suma es cero.
 
 ### Ejecución paso a paso
 
-**Caso `Avanzar(n)`**
+#### Caso `Avanzar(n)`
 
 1. La función recibe una orden `Avanzar`.
 2. No necesita conocer el valor de `n`, porque solo importa contar la orden.
 3. Devuelve `1`.
+   La regla matemática es:
 
-**Caso `Girar(s)`**
+$$
+B(\texttt{Avanzar}(n)) = 1
+$$
+
+#### Caso `Girar(s)`
 
 1. La función recibe una orden `Girar`.
 2. No necesita conocer el sentido del giro.
 3. Devuelve `1`.
+   La regla matemática es:
 
-**Caso `Repetir(veces, orden)`**
+$$
+B(\texttt{Girar}(s)) = 1
+$$
 
-1. Se obtiene el número de repeticiones y la orden que se repetirá.
+#### Caso `Repetir(veces, orden)`
+
+1. Se obtienen el número de repeticiones y la orden que se repetirá.
 2. Si `veces <= 0`, devuelve `0`.
 3. Si `veces > 0`, calcula recursivamente las órdenes básicas contenidas en `orden`.
-4. Multiplica el resultado por `veces`.
+4. Multiplica ese resultado por `veces`.
+   La regla matemática es:
 
-La regla matemática es:
+$$
+B(\texttt{Repetir}(k,o)) =
+\begin{cases}
+0 & \text{si } k \le 0 \\
+k \cdot B(o) & \text{si } k > 0
+\end{cases}
+$$
 
-$
-B(\operatorname{Avanzar}(n)) = 1
-$
-
-$
-B(\operatorname{Girar}(s)) = 1
-$
-
-$
-B(\operatorname{Repetir}(k,o))= \begin{cases} 0 & \text{si } k\leq 0,\\ kB(o) & \text{si } k>0. \end{cases}
-$
-
-**Caso `Secuencia(ordenes)`**
+#### Caso `Secuencia(ordenes)`
 
 1. Se obtiene la lista de órdenes.
 2. `map(cuantasBasicas)` calcula el conteo de cada elemento.
 3. `sum` suma todos los conteos.
 4. Si la lista está vacía, devuelve `0`.
+   La regla matemática es:
 
-La regla matemática es:
+$$
+B(\texttt{Secuencia}([o_1,\dots,o_m])) = \sum_{i=1}^{m} B(o_i)
+$$
 
-$
-B(\operatorname{Secuencia}([o_1,\ldots,o_m])) = \sum_{i=1}^{m}B(o_i)
-$ 
+Para la lista vacía ($m = 0$), la suma vale cero.
 
-Para la lista vacía, la suma se considera igual a cero.
+### Estado de la pila con un ejemplo
+
+Se muestra la evaluación de `cuantasBasicas(cuadrado)`, donde `cuadrado` es `Repetir(4, c)` y `c` es `Secuencia(List(Avanzar(1), Girar(Derecha)))`. La pila se lee desde la base hasta el tope. Se omiten los marcos internos de la biblioteca (`map` y `sum`).
+
+| Paso | Pila de llamados | Qué ocurre |
+|---|---|---|
+| 1 | `Repetir(4, c)` | Como $k = 4 > 0$, llama sobre `c`. Queda pendiente multiplicar por 4. |
+| 2 | `Repetir(4, c)` → `c` | `c` es una secuencia: `map` llama a la función para cada elemento. Queda pendiente la suma. |
+| 3 | `Repetir(4, c)` → `c` → `Avanzar(1)` | Devuelve `1` y su marco se retira. |
+| 4 | `Repetir(4, c)` → `c` → `Girar(Derecha)` | Devuelve `1` y su marco se retira. |
+| 5 | `Repetir(4, c)` → `c` | `sum` de `List(1, 1)` da `2`. Devuelve `2` y su marco se retira. |
+| 6 | `Repetir(4, c)` | Calcula `4 * 2 = 8`. Devuelve `8`. |
+| 7 | (vacía) | Resultado final: `8`. |
+
+La pila llega a una altura máxima de 3 marcos, que coincide con la profundidad de `cuadrado`. Cada marco queda esperando el resultado del siguiente, por eso la pila crece a medida que se baja por la estructura de la orden y se desarma al regresar.
 
 ### Diagrama de flujo
 
@@ -485,23 +507,35 @@ La función calcula cuántos niveles de anidamiento tiene una orden.
 
 Las órdenes básicas tienen profundidad 1, porque no contienen otras órdenes.
 
-En `Repetir`, la profundidad corresponde a un nivel adicional más la profundidad de la orden repetida.
+En `Repetir`, la profundidad es un nivel adicional más la profundidad de la orden repetida.
 
 En `Secuencia`, se calcula la profundidad de cada elemento, se selecciona la mayor y se suma uno para contar el nivel de la propia secuencia. Si la lista está vacía, `maxOption` no encuentra un máximo y `getOrElse(0)` proporciona cero. Por eso, una secuencia vacía tiene profundidad 1.
 
 ### Ejecución paso a paso
 
-**Caso `Avanzar(n)`**
+#### Caso `Avanzar(n)`
 
 1. Se identifica la orden básica.
 2. Como no contiene otras órdenes, devuelve `1`.
 
-**Caso `Girar(s)`**
+La regla matemática es:
+
+$$
+P(\texttt{Avanzar}(n)) = 1
+$$
+
+#### Caso `Girar(s)`
 
 1. Se identifica la orden básica.
 2. Como no contiene otras órdenes, devuelve `1`.
 
-**Caso `Repetir(veces, orden)`**
+La regla matemática es:
+
+$$
+P(\texttt{Girar}(s)) = 1
+$$
+
+#### Caso `Repetir(veces, orden)`
 
 1. Se obtiene la orden interna.
 2. Se calcula recursivamente su profundidad.
@@ -509,13 +543,13 @@ En `Secuencia`, se calcula la profundidad de cada elemento, se selecciona la may
 
 La regla matemática es:
 
-$
-P(\operatorname{Repetir}(k,o))=1+P(o)
-$
+$$
+P(\texttt{Repetir}(k,o)) = 1 + P(o)
+$$
 
 El número de repeticiones no afecta a la profundidad: repetir una orden una vez o diez veces no agrega niveles de anidamiento adicionales.
 
-**Caso `Secuencia(ordenes)`**
+#### Caso `Secuencia(ordenes)`
 
 1. Se calcula la profundidad de cada orden de la lista.
 2. Se obtiene la profundidad máxima.
@@ -524,12 +558,31 @@ El número de repeticiones no afecta a la profundidad: repetir una orden una vez
 
 La regla matemática es:
 
-$
-P(\operatorname{Secuencia}(os))=
-1+\max\left(\{P(o):o\in os\}\cup\{0\}\right)
-$
+$$
+P(\texttt{Secuencia}([o_1,\dots,o_m])) = 1 + \max\big(0,\ P(o_1),\ \dots,\ P(o_m)\big)
+$$
 
-Por lo tanto, la secuencia vacía tiene profundidad \(1+0=1\).
+El `0` dentro del máximo cumple el papel de `getOrElse(0)`: no altera el resultado cuando hay elementos, porque toda profundidad es al menos 1, y evita el máximo de una lista vacía cuando $m = 0$.
+
+Por lo tanto, la secuencia vacía tiene profundidad $1 + 0 = 1$.
+
+### Estado de la pila con un ejemplo
+
+Se muestra la evaluación de `profundidad(cuadrado)`, donde `cuadrado` es `Repetir(4, c)` y `c` es `Secuencia(List(Avanzar(1), Girar(Derecha)))`. La pila se lee desde la base hasta el tope. Se omiten los marcos internos de la biblioteca (`map` y `maxOption`).
+
+| Paso | Pila de llamados | Qué ocurre |
+|---|---|---|
+| 1 | `Repetir(4, c)` | Llama sobre la orden interna `c`. Queda pendiente sumar 1. |
+| 2 | `Repetir(4, c)` → `c` | `c` es una secuencia: `map` llama a la función para cada elemento. Queda pendiente el máximo y la suma de 1. |
+| 3 | `Repetir(4, c)` → `c` → `Avanzar(1)` | Devuelve `1` y su marco se retira. |
+| 4 | `Repetir(4, c)` → `c` → `Girar(Derecha)` | Devuelve `1` y su marco se retira. |
+| 5 | `Repetir(4, c)` → `c` | El máximo de `List(1, 1)` es `1`, y al sumar uno da `2`. Devuelve `2` y su marco se retira. |
+| 6 | `Repetir(4, c)` | Calcula `1 + 2 = 3`. Devuelve `3`. |
+| 7 | (vacía) | Resultado final: `3`. |
+
+La pila llega a una altura máxima de 3 marcos. Observe que el valor `4` de `Repetir` no interviene en ningún paso: la profundidad solo depende de la forma de la orden.
+
+Para la secuencia vacía la evaluación es todavía más corta. `profundidad(Secuencia(Nil))` usa un solo marco: `maxOption` sobre una lista vacía no encuentra máximo, `getOrElse(0)` devuelve `0`, y el resultado es `1 + 0 = 1`, sin ninguna llamada recursiva.
 
 ### Diagrama de flujo
 
@@ -694,17 +747,6 @@ En el último ejemplo, `cuantasBasicas` devuelve \(1+8=9\), porque cuenta el `Av
 | Sin `return` | Cada rama devuelve directamente el resultado de su expresión. |
 | Sin ejecutar las órdenes | Las funciones analizan la estructura de `Orden`; no llaman a `ejecutar`. |
 | Modelo de datos sin modificar | Se utilizan los constructores `Avanzar`, `Girar`, `Repetir` y `Secuencia` existentes. |
-
----
-
-## Conclusión
-
-Las funciones `cuantasBasicas` y `profundidad` recorren la estructura recursiva de una orden utilizando `match`.
-
-`cuantasBasicas` cuenta las órdenes básicas que se ejecutarían, teniendo en cuenta las repeticiones y sumando los elementos de las secuencias. `profundidad` calcula los niveles de anidamiento, sumando un nivel para cada orden compuesta y tomando la rama más profunda en las secuencias.
-
-Ambas funciones trabajan sin modificar el estado del robot y sin ejecutar movimientos. Así, permiten analizar una orden antes de pasarla a la función `ejecutar`.
-
 
 ---
 ## Punto 4: rutinas con funciones de alto orden
